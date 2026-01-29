@@ -1,234 +1,435 @@
 <!-- User Hero Section -->
 <section class="user-hero">
     <div class="user-hero-content">
-        <h1>Tài Khoản Của Tôi</h1>
-        <p>Quản lý thông tin cá nhân, đơn hàng và sở thích của bạn</p>
+        <h1 class="fade-in">Tài Khoản Của Tôi</h1>
+        <p class="fade-in" style="animation-delay: 0.1s;">Quản lý hồ sơ cá nhân, theo dõi đơn đặt hàng và lưu lại những
+            món đồ yêu thích của bạn</p>
     </div>
 </section>
 
 <!-- User Container -->
-<div class="grid-wrap">
+<div class="grid-wrap" *ngIf="currentUser; else loadingUser">
     <div class="user-container">
         <!-- User Sidebar -->
-        <aside class="user-sidebar">
+        <aside class="user-sidebar shadow-premium">
             <div class="user-profile">
-                <div class="user-avatar">{{ (currentUser.firstName || currentUser.username || 'U').charAt(0) | uppercase }}</div>
-                <div class="user-name">{{ (currentUser.firstName + ' ' + currentUser.lastName) }}</div>
-                <div class="user-email">{{ currentUser.email }}</div>
+                <div class="user-avatar shadow-lg">
+                    {{ (currentUser.fullname || currentUser.username || 'U').charAt(0) | uppercase }}
+                </div>
+                <h3 class="user-name">{{ currentUser.fullname }}</h3>
+                <p class="user-email"><i class="bi bi-envelope me-1"></i> {{ currentUser.username }}</p>
                 <div class="user-stats">
                     <div class="stat">
                         <span class="stat-number">{{ ordersCount }}</span>
                         <span class="stat-label">Đơn Hàng</span>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">{{ wishlistCount }}</span>
-                        <span class="stat-label">Yêu Thích</span>
-                    </div>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
-                <button class="nav-item" [class.active]="currentSection === 'profile'" (click)="switchSection('profile')">
-                    <i class="bi bi-person"></i>
+                <button class="nav-item" [class.active]="currentSection === 'profile'"
+                    (click)="switchSection('profile')">
+                    <i class="bi bi-person-bounding-box"></i>
                     Thông Tin Cá Nhân
                 </button>
                 <button class="nav-item" [class.active]="currentSection === 'orders'" (click)="switchSection('orders')">
-                    <i class="bi bi-bag"></i>
-                    Đơn Hàng Của Tôi
+                    <i class="bi bi-box-seam"></i>
+                    Lịch Sử Mua Hàng
                 </button>
-                <button class="nav-item" [class.active]="currentSection === 'addresses'" (click)="switchSection('addresses')">
+                <button class="nav-item" [class.active]="currentSection === 'addresses'"
+                    (click)="switchSection('addresses')">
                     <i class="bi bi-geo-alt"></i>
-                    Địa Chỉ
+                    Địa Chỉ Giao Hàng
                 </button>
-                <button class="nav-item" [class.active]="currentSection === 'wishlist'" (click)="switchSection('wishlist')">
+                <button class="nav-item" [class.active]="currentSection === 'wishlist'"
+                    (click)="switchSection('wishlist')">
                     <i class="bi bi-heart"></i>
                     Sản Phẩm Yêu Thích
                 </button>
-                <button class="nav-item" [class.active]="currentSection === 'security'" (click)="switchSection('security')">
-                    <i class="bi bi-shield-lock"></i>
+                <button class="nav-item" [class.active]="currentSection === 'security'"
+                    (click)="switchSection('security')">
+                    <i class="bi bi-shield-check"></i>
                     Bảo Mật
                 </button>
-                <button class="nav-item" (click)="logout()">
+                <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 10px 0;">
+                <button class="nav-item logout-link" (click)="logout()">
                     <i class="bi bi-box-arrow-right"></i>
                     Đăng Xuất
                 </button>
             </nav>
         </aside>
 
-        <!-- User Content -->
+        <!-- User Content Area -->
         <main class="user-content">
             <!-- Profile Section -->
-            <section *ngIf="currentSection === 'profile'" class="content-section">
+            <section *ngIf="currentSection === 'profile'" class="content-section fade-in">
                 <div class="section-header">
-                    <h2 class="section-title">Thông Tin Cá Nhân</h2>
-                    <div class="section-actions">
-                        <button class="save-btn" (click)="saveProfile()">Lưu Thay Đổi</button>
-                    </div>
+                    <h2 class="section-title">Thông Tin Chung</h2>
+                    <button class="save-btn" (click)="saveProfile()">
+                        <i class="bi bi-check2-circle me-1"></i> Cập Nhật Hồ Sơ
+                    </button>
                 </div>
 
-                <form class="profile-form">
+                <form class="profile-form mt-4">
                     <div class="form-group">
-                        <label class="form-label" for="firstName">Họ</label>
-                        <input type="text" id="firstName" class="form-control" required [(ngModel)]="currentUser.firstName" name="firstName">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="lastName">Tên</label>
-                        <input type="text" id="lastName" class="form-control" required [(ngModel)]="currentUser.lastName" name="lastName">
+                        <label class="form-label"><i class="bi bi-person me-1"></i> Họ và Tên</label>
+                        <input type="text" class="form-control" [(ngModel)]="currentUser.fullname" name="fullname"
+                            placeholder="Nhập họ và tên của bạn">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="email">Email</label>
-                        <input type="email" id="email" class="form-control" required [(ngModel)]="currentUser.email" name="email">
+                        <label class="form-label"><i class="bi bi-at me-1"></i> Địa Chỉ Email</label>
+                        <input type="text" class="form-control" [(ngModel)]="currentUser.username" name="username"
+                            readonly>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="phone">Số Điện Thoại</label>
-                        <input type="tel" id="phone" class="form-control" [(ngModel)]="currentUser.phone" name="phone">
+                        <label class="form-label"><i class="bi bi-phone me-1"></i> Số Điện Thoại</label>
+                        <input type="tel" class="form-control" [(ngModel)]="currentUser.phone" name="phone"
+                            placeholder="+84 ...">
                     </div>
-                    <div class="form-group full-width">
-                        <label class="form-label" for="birthday">Ngày Sinh</label>
-                        <input type="date" id="birthday" class="form-control" [(ngModel)]="currentUser.birthday" name="birthday">
-                    </div>
-                    <div class="form-group full-width">
-                        <label class="form-label">Giới Tính</label>
-                        <div style="display: flex; gap: 15px;">
-                            <label style="display: flex; align-items: center; gap: 5px;">
-                                <input type="radio" name="gender" value="male" [(ngModel)]="currentUser.gender"> Nam
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 5px;">
-                                <input type="radio" name="gender" value="female" [(ngModel)]="currentUser.gender"> Nữ
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 5px;">
-                                <input type="radio" name="gender" value="other" [(ngModel)]="currentUser.gender"> Khác
-                            </label>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-calendar-event me-1"></i> Ngày Sinh</label>
+                        <input type="date" class="form-control" [(ngModel)]="currentUser.birthday" name="birthday">
                     </div>
                 </form>
             </section>
 
             <!-- Orders Section -->
-            <section *ngIf="currentSection === 'orders'" class="content-section">
+            <section *ngIf="currentSection === 'orders'" class="content-section fade-in">
                 <div class="section-header">
-                    <h2 class="section-title">Đơn Hàng Của Tôi</h2>
+                    <h2 class="section-title">Đơn Hàng Đã Mua</h2>
                 </div>
 
-                <div class="orders-list">
-                    <div *ngIf="!(currentUser.orders?.length)" class="empty-state">
-                        <i class="bi bi-bag"></i>
-                        <h3>Chưa có đơn hàng</h3>
-                        <p>Bạn chưa có đơn hàng nào. Hãy bắt đầu mua sắm!</p>
-                        <a routerLink="/shop" class="save-btn">Mua Sắm Ngay</a>
+                <div class="orders-list list-fade">
+                    <div *ngIf="loading && orders.length === 0" class="empty-state">
+                        <div class="spinner-grow text-primary" role="status"></div>
+                        <p class="mt-4">Đang đồng bộ dữ liệu đơn hàng...</p>
                     </div>
 
-                    <div *ngFor="let order of currentUser.orders" class="order-card">
-                        <div class="order-header">
+                    <div *ngIf="!loading && orders.length === 0" class="empty-state">
+                        <i class="bi bi-cart-x"></i>
+                        <h3>Chưa có đơn hàng nào</h3>
+                        <p>Bạn chưa thực hiện bất kỳ giao dịch nào. Những món đồ tuyệt đẹp trong tương lai sẽ xuất hiện
+                            ở đây!</p>
+                        <button routerLink="/shop" class="save-btn">Bắt Đầu Mua Sắm</button>
+                    </div>
+
+                    <div *ngFor="let order of orders" class="order-card p-0 mb-4 shadow-sm border-0">
+                        <div class="order-header px-4 py-3 bg-light d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="order-id">Đơn hàng #{{order.id}}</div>
-                                <div class="order-date">{{ order.date | date:'dd/MM/yyyy' }}</div>
+                                <span class="order-id text-dark">Đơn hàng #{{order._id?.slice(-8)}}</span>
+                                <div class="order-date text-muted small"><i class="bi bi-calendar3 me-1"></i> {{
+                                    order.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
                             </div>
-                            <div class="order-status">{{ order.status }}</div>
+                            <span class="status-badge" [class]="order.status">
+                                {{ order.status }}
+                            </span>
                         </div>
-                        <div class="order-items">
-                            <div *ngFor="let item of order.items" class="order-item">
-                                <img [src]="item.image" alt="{{item.name}}" class="item-image" *ngIf="item.image">
-                                <div class="item-name">{{ item.name }}</div>
+
+                        <div class="order-items px-4 py-2">
+                            <div *ngFor="let item of order.items" class="order-item py-3 d-flex align-items-center">
+                                <img [src]="getImgUrl(item.img)" alt="product" class="item-img"
+                                    onerror="this.src='https://placehold.co/100x100?text=Product'">
+                                <div class="item-info ms-4">
+                                    <div class="item-name text-dark fw-bold">{{ item.title }}</div>
+                                    <div class="item-meta text-muted small mt-1">
+                                        <span *ngIf="item.size" class="badge bg-light text-dark border me-2">Size:
+                                            {{item.size}}</span>
+                                        <span *ngIf="item.color" class="badge bg-light text-dark border me-2">Màu:
+                                            {{item.color}}</span>
+                                        <span>SL: {{item.qty}}</span>
+                                    </div>
+                                </div>
+                                <div class="item-price fs-5 fw-bold text-dark">${{ item.price * item.qty }}</div>
                             </div>
                         </div>
-                        <div class="order-footer">
-                            <div class="order-total">{{ formatPrice(order.total) }}</div>
+
+                        <div
+                            class="order-footer px-4 py-3 d-flex justify-content-between align-items-center border-top">
+                            <div class="shipping-info text-muted small">
+                                <i class="bi bi-truck me-1"></i> Vận chuyển:
+                                <span class="fw-bold" [style.color]="order.shippingFee === 0 ? '#10b981' : 'inherit'">
+                                    {{ order.shippingFee ? '$' + order.shippingFee : 'MIỄN PHÍ' }}
+                                </span>
+                            </div>
+                            <div class="total-amount text-primary fw-bolder fs-4">
+                                Tổng: ${{ order.total }}
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- Addresses Section -->
-            <section *ngIf="currentSection === 'addresses'" class="content-section">
+            <section *ngIf="currentSection === 'addresses'" class="content-section fade-in">
                 <div class="section-header">
-                    <h2 class="section-title">Địa Chỉ Của Tôi</h2>
-                    <div class="section-actions">
-                        <button class="save-btn" (click)="addNewAddress()">Thêm Địa Chỉ Mới</button>
-                    </div>
+                    <h2 class="section-title">Sổ Địa Chỉ</h2>
+                    <button class="save-btn" (click)="openAddressModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm Mới
+                    </button>
                 </div>
 
-                <div class="addresses-grid">
-                    <div *ngIf="!(currentUser.addresses?.length)" class="empty-state">
-                        <i class="bi bi-geo-alt"></i>
-                        <h3>Chưa có địa chỉ</h3>
-                        <p>Thêm địa chỉ giao hàng đầu tiên của bạn</p>
+                <div class="addresses-grid mt-4">
+                    <div *ngIf="!(currentUser.addresses?.length)" class="empty-state w-100 mt-5">
+                        <i class="bi bi-pin-map"></i>
+                        <h3>Danh sách địa chỉ trống</h3>
+                        <p>Lưu địa chỉ nhà, văn phòng hoặc nơi làm việc để thanh toán nhanh hơn lần sau.</p>
                     </div>
 
-                    <div *ngFor="let address of currentUser.addresses" class="address-card" [class.default]="address.default">
+                    <div *ngFor="let address of currentUser.addresses; let i = index" class="address-card"
+                        [class.default]="address.default">
                         <div class="address-header">
-                            <h3 class="address-title">{{ address.title }}</h3>
-                            <span *ngIf="address.default" class="default-badge">Mặc định</span>
+                            <h4 class="address-title"><i class="bi bi-geo-alt-fill me-2 text-primary"></i> {{
+                                address.title }}</h4>
+                            <div class="address-actions">
+                                <span *ngIf="address.default"
+                                    class="badge bg-primary text-white rounded-pill px-3 py-2 ms-2"
+                                    style="font-size: 0.65rem;">MẶC ĐỊNH</span>
+                                <button (click)="deleteAddress(i)" class="btn text-danger ms-2 p-1">
+                                    <i class="bi bi-trash3 fs-5"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="address-details">
-                            <div><strong>{{ address.fullName }}</strong></div>
-                            <div>{{ address.phone }}</div>
-                            <div>{{ address.street }}</div>
-                            <div>{{ address.city }}, {{ address.district }}, {{ address.ward }}</div>
+                        <div class="address-details mt-3">
+                            <div class="fw-bold text-dark fs-5 mb-1">{{ address.fullName }}</div>
+                            <div class="text-muted"><i class="bi bi-telephone me-2"></i> {{ address.phone }}</div>
+                            <div class="text-muted mt-2"><i class="bi bi-map me-2"></i> {{ address.street }}</div>
+                            <div class="text-muted"><i class="bi bi-building me-2"></i> {{ address.city }}</div>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- Wishlist Section -->
-            <section *ngIf="currentSection === 'wishlist'" class="content-section">
+            <section *ngIf="currentSection === 'wishlist'" class="content-section fade-in">
                 <div class="section-header">
-                    <h2 class="section-title">Sản Phẩm Yêu Thích</h2>
+                    <h2 class="section-title">Sản Phẩm Đã Lưu</h2>
                 </div>
 
-                <div *ngIf="!(currentUser.wishlist?.length)" class="empty-state">
-                    <i class="bi bi-heart"></i>
-                    <h3>Danh sách yêu thích trống</h3>
-                    <p>Thêm sản phẩm bạn yêu thích vào đây</p>
-                    <a routerLink="/shop" class="save-btn">Khám Phá Sản Phẩm</a>
+                <div *ngIf="!wishlistProducts.length" class="empty-state h-100">
+                    <i class="bi bi-heartbreak"></i>
+                    <h3>Chưa yêu thích sản phẩm nào</h3>
+                    <p>Nhấn vào biểu tượng trái tim trên bất kỳ sản phẩm nào để lưu lại ở đây.</p>
+                    <button routerLink="/shop" class="save-btn">Đi Mua Sắm Ngay</button>
                 </div>
 
-                <div class="wishlist-grid">
-                    <div *ngFor="let item of currentUser.wishlist" class="wishlist-item">
-                        <button class="wishlist-remove" (click)="removeFromWishlist(item.id)">×</button>
-                        <img [src]="item.image" alt="{{item.name}}" class="wishlist-image" *ngIf="item.image">
-                        <div class="wishlist-name">{{ item.name }}</div>
-                        <div class="wishlist-price">{{ formatPrice(item.price) }}</div>
-                        <button class="btn-sm" style="background: #ff6b6b; color: white; width: 100%;">Thêm Vào Giỏ</button>
+                <div class="wishlist-grid mt-4" *ngIf="wishlistProducts.length">
+                    <div *ngFor="let item of wishlistProducts" class="wishlist-item shadow-sm">
+                        <button class="wishlist-remove" (click)="removeFromWishlist(item)"><i
+                                class="bi bi-trash3-fill"></i></button>
+                        <img [src]="getImgUrl(item.img)" alt="{{item.title}}" class="wishlist-image">
+                        <div class="wishlist-name px-2">{{ item.title }}</div>
+                        <div class="wishlist-price fs-4 fw-bold text-primary my-2">{{ formatPrice(item.price) }}</div>
+                        <button class="save-btn w-100 py-3" (click)="addToCartFromWishlist(item)">
+                            <i class="bi bi-bag-plus me-2"></i> Thêm Vào Giỏ
+                        </button>
                     </div>
                 </div>
             </section>
 
             <!-- Security Section -->
-            <section *ngIf="currentSection === 'security'" class="content-section">
+            <section *ngIf="currentSection === 'security'" class="content-section fade-in">
                 <div class="section-header">
-                    <h2 class="section-title">Bảo Mật Tài Khoản</h2>
+                    <h2 class="section-title">Cài Đặt Bảo Mật</h2>
                 </div>
 
-                <div class="security-settings">
-                    <div class="security-item">
-                        <div class="security-header">
-                            <h3 class="security-title">Đổi Mật Khẩu</h3>
-                            <span class="security-status status-active">Đã thiết lập</span>
+                <div class="mt-4" style="max-width: 500px;">
+                    <div class="p-4 bg-light border-0 rounded-4 mb-4" style="background: #f8fafc; border-radius: 20px;">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-shield-check text-success fs-3 me-3"></i>
+                            <div>
+                                <h5 class="mb-0 fw-bold">Bảo vệ tài khoản</h5>
+                                <p class="text-muted small mb-0">Tài khoản của bạn được bảo mật bằng mã hóa</p>
+                            </div>
                         </div>
-                        <p class="security-description">Cập nhật mật khẩu của bạn để bảo vệ tài khoản</p>
-                        <button class="btn-sm btn-outline">Đổi Mật Khẩu</button>
+                        <button class="btn btn-outline-primary rounded-pill w-100 py-3 fw-bold mt-2 shadow-sm"
+                            style="border-width: 2px;">
+                            Thay Đổi Mật Khẩu
+                        </button>
                     </div>
 
-                    <div class="security-item">
-                        <div class="security-header">
-                            <h3 class="security-title">Xác Thực 2 Lớp</h3>
-                            <span class="security-status">Chưa bật</span>
-                        </div>
-                        <p class="security-description">Thêm lớp bảo mật bổ sung cho tài khoản của bạn</p>
-                        <button class="btn-sm btn-outline">Bật 2FA</button>
-                    </div>
-
-                    <div class="security-item">
-                        <div class="security-header">
-                            <h3 class="security-title">Hoạt Động Đăng Nhập</h3>
-                            <span class="security-status status-active">Theo dõi</span>
-                        </div>
-                        <p class="security-description">Xem lịch sử đăng nhập và thiết bị đang hoạt động</p>
-                        <button class="btn-sm btn-outline">Xem Hoạt Động</button>
+                    <div class="p-4 bg-light border-0 rounded-4" style="background: #f8fafc; border-radius: 20px;">
+                        <h6 class="fw-bold mb-3">Hoạt động đăng nhập</h6>
+                        <p class="text-muted small">Chúng tôi sẽ xem xét lịch sử đăng nhập của bạn để giúp giữ an toàn
+                            cho tài khoản. Nếu thấy có gì bất thường, chúng tôi sẽ thông báo cho bạn ngay.</p>
+                        <button class="btn btn-link text-primary p-0 text-decoration-none fw-bold small">Xem các lần
+                            đăng nhập gần đây <i class="bi bi-chevron-right ms-1"></i></button>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 </div>
+
+<!-- Address Modal -->
+<div class="modal-backdrop" *ngIf="showAddressModal" (click)="closeAddressModal()">
+    <div class="address-modal-card border-0 shadow-premium" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-header-premium">
+            <div class="header-icon-box">
+                <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div class="header-content">
+                <h3 class="mb-1">Thêm Địa Chỉ Mới</h3>
+                <p class="text-muted small mb-0">Vui lòng cung cấp thông tin chính xác để đảm bảo giao hàng tận nơi</p>
+            </div>
+            <button (click)="closeAddressModal()" class="close-btn-minimal" aria-label="Close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="modal-body-premium">
+            <div class="address-form-grid mt-2">
+                <!-- Group 1: Recipient Info -->
+                <div class="form-section-title" style="grid-column: span 2;">
+                    <span>Thông tin người nhận</span>
+                </div>
+
+                <div class="form-group-premium" style="grid-column: span 2;">
+                    <label class="form-label-premium"><i class="bi bi-person me-2"></i>Họ và Tên</label>
+                    <div class="input-wrapper">
+                        <input type="text" [(ngModel)]="newAddress.fullName" class="form-control-premium"
+                            name="fullName" placeholder="Tên đầy đủ của người nhận">
+                    </div>
+                </div>
+
+                <div class="form-group-premium">
+                    <label class="form-label-premium"><i class="bi bi-telephone me-2"></i>Số Điện Thoại</label>
+                    <div class="input-wrapper">
+                        <input type="tel" [(ngModel)]="newAddress.phone" class="form-control-premium" name="phone"
+                            placeholder="+84 ...">
+                    </div>
+                </div>
+
+                <div class="form-group-premium">
+                    <label class="form-label-premium"><i class="bi bi-bookmark me-2"></i>Tên Gợi Nhớ</label>
+                    <div class="input-wrapper">
+                        <input type="text" [(ngModel)]="newAddress.title" class="form-control-premium" name="title"
+                            placeholder="Nhà riêng / Công ty">
+                    </div>
+                </div>
+
+                <!-- Group 2: Address Details -->
+                <div class="form-section-title mt-3" style="grid-column: span 2;">
+                    <span>Địa chỉ giao hàng</span>
+                </div>
+
+                <div class="form-group-premium" style="grid-column: span 2;">
+                    <label class="form-label-premium"><i class="bi bi-map me-2"></i>Thành Phố / Tỉnh</label>
+                    <div class="input-wrapper">
+                        <input type="text" [(ngModel)]="newAddress.city" class="form-control-premium" name="city"
+                            placeholder="Chọn Tỉnh / Thành phố">
+                    </div>
+                </div>
+
+                <div class="form-group-premium" style="grid-column: span 2;">
+                    <label class="form-label-premium"><i class="bi bi-signpost-2 me-2"></i>Địa Chỉ Chi Tiết</label>
+                    <div class="input-wrapper">
+                        <textarea [(ngModel)]="newAddress.street" class="form-control-premium" name="street" rows="3"
+                            placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group-premium mt-3" style="grid-column: span 2;">
+                    <label class="custom-checkbox-container">
+                        <input type="checkbox" [(ngModel)]="newAddress.default" name="default">
+                        <span class="checkmark"></span>
+                        <div class="checkbox-text">
+                            <span class="fw-bold d-block">Đặt làm địa chỉ mặc định</span>
+                            <span class="text-muted small">Địa chỉ này sẽ được ưu tiên sử dụng khi bạn thanh toán</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer-premium">
+            <button (click)="closeAddressModal()" class="btn-cancel-premium">
+                Hủy Bỏ
+            </button>
+            <button (click)="saveAddress()" class="btn-save-premium">
+                <span>Lưu Địa Chỉ</span>
+                <i class="bi bi-arrow-right-short ms-2"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<ng-template #loadingUser>
+    <div class="d-flex flex-column align-items-center justify-content-center p-5 mt-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+        <p class="mt-4 fw-bold text-muted">Đang đồng bộ hóa dữ liệu hồ sơ...</p>
+    </div>
+</ng-template>
+
+<style>
+    .fade-in {
+        animation: fadeInAni 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes fadeInAni {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .list-fade .order-card {
+        animation: fadeInAni 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .list-fade .order-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .list-fade .order-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .list-fade .order-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .shadow-premium {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04), 0 2px 10px rgba(0, 0, 0, 0.02) !important;
+    }
+
+    .status-badge {
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 800;
+    }
+
+    .status-badge.delivered {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-badge.processing {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .status-badge.shipped {
+        background: #f3e8ff;
+        color: #9333ea;
+    }
+
+    .status-badge.cancelled {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+</style>

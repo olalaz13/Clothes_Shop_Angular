@@ -1,0 +1,728 @@
+<div class="dashboard-wrapper">
+  <!-- Overlay for mobile -->
+  <div class="sidebar-overlay" [class.show]="isSidebarOpen" (click)="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar-nav" [class.show]="isSidebarOpen">
+    <div class="sidebar-header" [routerLink]="['/']" style="cursor: pointer;">
+      <div class="logo-circle">CS</div>
+      <h4>ClothesShop Admin</h4>
+      <p class="role-tag">{{ isAdmin ? 'Administrator' : 'Employee' }}</p>
+    </div>
+
+    <ul class="nav-links">
+      <li [class.active]="activeSection === 'dashboard'" (click)="setSection('dashboard')">
+        <i class="bi bi-grid-1x2-fill"></i> <span>Overview</span>
+      </li>
+      <li [class.active]="activeSection === 'analytics'" (click)="setSection('analytics')">
+        <i class="bi bi-graph-up-arrow"></i> <span>Analytics</span>
+      </li>
+      <li [class.active]="activeSection === 'products'" (click)="setSection('products')">
+        <i class="bi bi-box-seam-fill"></i> <span>Products</span>
+      </li>
+      <li [class.active]="activeSection === 'categories'" (click)="setSection('categories')">
+        <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </li>
+      <li [class.active]="activeSection === 'orders'" (click)="setSection('orders')">
+        <i class="bi bi-cart-check-fill"></i> <span>Orders</span>
+      </li>
+      <li *ngIf="isAdmin" [class.active]="activeSection === 'employees'" (click)="setSection('employees')">
+        <i class="bi bi-people-fill"></i> <span>Staff Team</span>
+      </li>
+      <li [class.active]="activeSection === 'customers'" (click)="setSection('customers')">
+        <i class="bi bi-person-badge-fill"></i> <span>Customers</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <i class="bi bi-box-arrow-left"></i> Logout System
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-left">
+        <button class="menu-toggle" (click)="toggleSidebar()">
+          <i class="bi bi-list"></i>
+        </button>
+        <div class="search-bar">
+          <i class="bi bi-search"></i>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Search everything...">
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div style="position: relative; display: inline-block;">
+          <button class="action-icon" (click)="toggleNotifications()">
+            <i class="bi bi-bell"></i>
+            <span class="dot" *ngIf="unreadNotificationsCount > 0"></span>
+          </button>
+          <div class="dropdown-menu" [class.show]="showNotifications">
+            <h6>Notifications</h6>
+            <div class="notification-item" *ngFor="let n of notifications" [class.unread]="!n.read">
+              <p>{{ n.text }}</p>
+              <span>{{ n.time }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="action-icon" (click)="toggleChat()">
+          <i class="bi bi-chat-dots"></i>
+        </button>
+
+        <div class="user-profile">
+          <div class="avatar">
+            {{ userFullname.charAt(0) }}
+          </div>
+          <div class="user-info">
+            <span class="name">{{ userFullname }}</span>
+            <span class="status" style="color: #10b981;">● Online</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <!-- Section Header -->
+      <div class="section-title-row">
+        <h2 class="fade-in">{{ (activeSection === 'dashboard' ? 'Overview' : activeSection) | titlecase }}</h2>
+        <div class="actions-group">
+          <button *ngIf="activeSection === 'products'" class="btn-add" (click)="openAddModal()">
+            <i class="bi bi-plus-lg"></i> Add Product
+          </button>
+          <button *ngIf="activeSection === 'categories'" class="btn-add" style="background-color: #7c3aed;"
+            (click)="openAddCategoryModal()">
+            <i class="bi bi-plus-lg"></i> Add Master Category
+          </button>
+          <button *ngIf="isAdmin && activeSection === 'employees'" class="btn-add" (click)="openAddUserModal()">
+            <i class="bi bi-person-plus-fill"></i> Add Staff
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="dashboard-loading">
+        <div class="spinner"></div>
+        <p>Synchronizing data with database...</p>
+      </div>
+
+      <!-- Main Sections Container -->
+      <div *ngIf="!loading">
+        <!-- Dashboard Overview -->
+        <div *ngIf="activeSection === 'dashboard'" class="fade-in">
+          <div class="stats-grid">
+            <div class="stat-card blue">
+              <div class="card-icon" style="background: #e0e7ff; color: #6366f1;"><i class="bi bi-currency-dollar"></i>
+              </div>
+              <div class="card-data">
+                <h3>{{ sumRevenue | currency }}</h3>
+                <p>Total Revenue</p>
+              </div>
+            </div>
+            <div class="stat-card orange">
+              <div class="card-icon" style="background: #fff7ed; color: #f59e0b;"><i class="bi bi-box-seam"></i></div>
+              <div class="card-data">
+                <h3>{{ products.length }}</h3>
+                <p>In-Stock Products</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="table-container" style="margin-top: 20px;">
+            <div
+              style="padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+              <h5 style="margin: 0; font-weight: 800; color: var(--primary);">LATEST ORDERS</h5>
+              <button (click)="setSection('orders')" class="icon-btn info"
+                style="width: auto; padding: 0 15px; border-radius: 20px; font-size: 0.8rem; height: 32px;">Manage
+                All</button>
+            </div>
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of orders.slice(0, 5)">
+                  <td>{{ order.user?.fullname || 'Guest Account' }}</td>
+                  <td><strong>{{ order.total | currency }}</strong></td>
+                  <td><span class="status-badge" [class]="order.status">{{ order.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Products Management -->
+        <div *ngIf="activeSection === 'products'" class="fade-in">
+          <div class="table-container">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let product of filteredProducts">
+                  <td><img [src]="getImgUrl(product.img)" class="table-img"
+                      onerror="this.src='https://placehold.co/100x100?text=Product'"></td>
+                  <td><strong>{{ product.title }}</strong></td>
+                  <td><span class="badge secondary">{{ product.cat || 'No Cat' }}</span></td>
+                  <td>{{ product.price | currency }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="icon-btn info" (click)="viewProductDetails(product)" title="View Details"><i
+                          class="bi bi-info-circle"></i></button>
+                      <button class="icon-btn edit" (click)="openEditModal(product)" title="Edit"><i
+                          class="bi bi-pencil"></i></button>
+                      <button *ngIf="isAdmin" class="icon-btn delete" (click)="deleteProduct(product._id)"
+                        title="Delete"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Orders Management -->
+        <div *ngIf="activeSection === 'orders'" class="fade-in">
+          <div class="table-container">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of filteredOrders">
+                  <td>
+                    <div class="customer-info" style="display: flex; flex-direction: column;">
+                      <strong>{{ order.user?.fullname || order.shippingInfo?.fullname }}</strong>
+                      <span style="font-size: 0.75rem; color: #64748b;">{{ order.user?.username || 'Guest' }}</span>
+                    </div>
+                  </td>
+                  <td><strong>{{ order.total | currency }}</strong></td>
+                  <td><span class="status-badge" [class]="order.status">{{ order.status }}</span></td>
+                  <td>{{ order.createdAt | date:'shortDate' }}</td>
+                  <td>
+                    <div class="table-actions" style="display: flex; gap: 8px;">
+                      <button class="icon-btn info" (click)="viewOrderDetails(order)" title="View Details">
+                        <i class="bi bi-info-circle"></i>
+                      </button>
+                      <select class="form-select-sm" (change)="updateOrderStatus(order._id, $any($event.target).value)">
+                        <option [selected]="order.status === 'pending'" value="pending">Pending</option>
+                        <option [selected]="order.status === 'processing'" value="processing">Processing</option>
+                        <option [selected]="order.status === 'shipped'" value="shipped">Shipped</option>
+                        <option [selected]="order.status === 'delivered'" value="delivered">Delivered</option>
+                        <option [selected]="order.status === 'cancelled'" value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Employees Management -->
+        <div *ngIf="activeSection === 'employees'" class="fade-in">
+          <div class="table-container">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Staff Member</th>
+                  <th>Username</th>
+                  <th>Access Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let emp of filteredEmployees">
+                  <td><strong>{{ emp.fullname }}</strong></td>
+                  <td>{{ emp.username }}</td>
+                  <td><span class="badge" [class.primary]="emp.role==='admin'"
+                      [class.secondary]="emp.role==='employee'">{{ emp.role | titlecase }}</span></td>
+                  <td>
+                    <div class="table-actions" *ngIf="isAdmin">
+                      <button class="icon-btn edit" (click)="openEditUserModal(emp)" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button *ngIf="emp.username !== userFullname" class="icon-btn delete"
+                        (click)="deleteUser(emp._id, 'employees')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Customers Management -->
+        <div *ngIf="activeSection === 'customers'" class="fade-in">
+          <div class="table-container">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Username</th>
+                  <th>Member Since</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cust of filteredCustomers">
+                  <td><strong>{{ cust.fullname }}</strong></td>
+                  <td>{{ cust.username }}</td>
+                  <td>{{ cust.createdAt | date:'mediumDate' }}</td>
+                  <td>
+                    <div class="table-actions" *ngIf="isAdmin">
+                      <button class="icon-btn edit" (click)="openEditUserModal(cust)" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="icon-btn delete" (click)="deleteUser(cust._id, 'customers')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Categories Management -->
+        <div *ngIf="activeSection === 'categories'" class="fade-in">
+          <div class="table-container">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Category Name</th>
+                  <th>Product Count</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cat of filteredCategories">
+                  <td><strong>{{ cat.name }}</strong></td>
+                  <td>{{ getProductCountByCategory(cat.name) }} items</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="icon-btn edit" (click)="openEditCategoryModal(cat)" title="Edit"><i
+                          class="bi bi-pencil"></i></button>
+                      <button *ngIf="isAdmin" class="icon-btn delete" (click)="deleteCategory(cat._id)"
+                        title="Delete"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div *ngIf="activeSection === 'analytics'" class="fade-in">
+          <div class="stats-grid">
+            <div class="stat-card green">
+              <div class="card-icon" style="background: #ecfdf5; color: #10b981;"><i class="bi bi-cart-check"></i></div>
+              <div class="card-data">
+                <h3>{{ orders.length }}</h3>
+                <p>Total Orders</p>
+              </div>
+            </div>
+            <div class="stat-card purple">
+              <div class="card-icon" style="background: #f5f3ff; color: #7c3aed;"><i class="bi bi-people"></i></div>
+              <div class="card-data">
+                <h3>{{ customers.length }}</h3>
+                <p>Total Customers</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-container" style="margin-top: 20px;">
+            <div style="padding: 20px; border-bottom: 1px solid #f1f5f9;">
+              <h5 style="margin: 0; font-weight: 800; color: var(--primary);">ORDER PERFORMANCE</h5>
+            </div>
+            <div style="padding: 20px;">
+              <div
+                style="height: 200px; background: #f8fafc; border-radius: 12px; display: flex; align-items: flex-end; padding: 20px; gap: 10px; border: 1px dashed #e2e8f0;">
+                <div *ngFor="let day of [35, 60, 45, 80, 55, 90, 70]" [style.height]="day + '%'"
+                  style="flex: 1; background: linear-gradient(to top, var(--primary), #a78bfa); border-radius: 4px; transition: height 0.5s ease;">
+                </div>
+              </div>
+              <div
+                style="display: flex; justify-content: space-between; margin-top: 10px; color: #64748b; font-size: 0.8rem; font-weight: 600;">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Backdrops -->
+<div class="modal-backdrop-premium" *ngIf="showModal || showUserModal || showOrderModal || showCategoryModal"
+  (click)="closeAllModals()">
+</div>
+
+<!-- Product Modal (CRUD) -->
+<div class="modal-premium" *ngIf="showModal" style="max-width: 900px; width: 95%;">
+  <div class="modal-content">
+    <div class="modal-header-premium">
+      <h3>
+        <i class="bi" [class.bi-plus-circle]="!isEditing" [class.bi-pencil-square]="isEditing"></i>
+        {{ isEditing ? 'Edit Product' : 'Create New Product' }}
+      </h3>
+      <button class="close-btn" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <form (ngSubmit)="saveProduct()">
+      <div class="modal-body-premium">
+        <div class="grid-form" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px;">
+          <!-- Left Column: Core Details -->
+          <div class="form-col">
+            <h5 class="form-section-title">
+              <i class="bi bi-info-circle-fill me-2"></i> General Information
+            </h5>
+
+            <div class="input-group mb-3">
+              <label><i class="bi bi-fonts me-1"></i> Product Title</label>
+              <input type="text" [(ngModel)]="currentProduct.title" name="title" required
+                placeholder="Enter catchy product name...">
+            </div>
+
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="input-group mb-3">
+                <label><i class="bi bi-tag-fill me-1"></i> Category</label>
+                <select [(ngModel)]="currentProduct.cat" name="cat" required>
+                  <option value="" disabled selected>Select category</option>
+                  <option *ngFor="let cat of categories" [value]="cat.name">{{ cat.name }}</option>
+                </select>
+              </div>
+              <div class="input-group mb-3">
+                <label><i class="bi bi-currency-dollar me-1"></i> Price</label>
+                <input type="number" [(ngModel)]="currentProduct.price" name="price" required placeholder="0.00">
+              </div>
+            </div>
+
+            <div class="input-group mb-3">
+              <label><i class="bi bi-card-text me-1"></i> Description</label>
+              <textarea [(ngModel)]="currentProduct.desc" name="desc" rows="5"
+                placeholder="Write a compelling description..."
+                style="width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; padding: 12px; outline: none;"></textarea>
+            </div>
+
+            <div class="input-group">
+              <label><i class="bi bi-image-fill me-1"></i> Product Image</label>
+              <div class="image-upload-wrapper">
+                <div *ngIf="currentProduct.img" class="image-preview"
+                  style="width: 120px; height: 120px; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; position: relative; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                  <img [src]="getImgUrl(currentProduct.img)" style="width: 100%; height: 100%; object-fit: cover;">
+                  <div class="overlay" (click)="currentProduct.img = ''"
+                    style="position: absolute; top:0; left:0; width:100%; height:100%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; cursor: pointer; color: white;">
+                    <i class="bi bi-trash fs-4"></i>
+                  </div>
+                </div>
+                <div class="upload-controls">
+                  <input type="text" [(ngModel)]="currentProduct.img" name="img" placeholder="Paste image URL here..."
+                    style="margin-bottom: 12px; background: #f8fafc;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input"
+                      id="productImg" hidden>
+                    <label for="productImg" class="file-input-label">
+                      <i class="bi bi-cloud-arrow-up-fill fs-5"></i> Upload from computer
+                    </label>
+                    <span style="font-size: 0.75rem; color: #94a3b8;">PNG, JPG up to 5MB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Variants & Specs -->
+          <div class="form-col">
+            <h5 class="form-section-title">
+              <i class="bi bi-layers-fill me-2"></i> Variants & Details
+            </h5>
+
+            <!-- Sizes -->
+            <div class="detail-edit-section mb-4"
+              style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #f1f5f9;">
+              <label style="font-weight: 700; display: block; margin-bottom: 15px; color: #1e293b;">
+                <i class="bi bi-rulers me-1"></i> Available Sizes
+              </label>
+              <div class="tags-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                <span class="badge primary" *ngFor="let size of currentProduct.sizes; let i = index"
+                  style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.85rem;">
+                  {{ size }} <i class="bi bi-x-circle-fill" (click)="removeSize(i)"
+                    style="cursor: pointer; opacity: 0.7;"></i>
+                </span>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <input #newSize type="text" placeholder="Size (e.g. XXL)"
+                  style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem;">
+                <button type="button" class="btn-save" (click)="addSize(newSize.value); newSize.value=''"
+                  style="padding: 10px 20px; font-size: 0.9rem;">Add</button>
+              </div>
+            </div>
+
+            <!-- Colors -->
+            <div class="detail-edit-section"
+              style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #f1f5f9;">
+              <label style="font-weight: 700; display: block; margin-bottom: 15px; color: #1e293b;">
+                <i class="bi bi-palette-fill me-1"></i> Color Palette
+              </label>
+              <div class="tags-container" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
+                <div class="color-tag" *ngFor="let color of currentProduct.colors; let i = index"
+                  [style.background-color]="color.hex"
+                  style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; cursor: pointer;"
+                  [title]="color.name">
+                  <i class="bi bi-x-circle-fill" (click)="removeColor(i)"
+                    style="position: absolute; top: -8px; right: -8px; color: #f43f5e; background: white; border-radius: 50%; font-size: 16px;"></i>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 40px auto; gap: 10px; align-items: center;">
+                <input #colorName type="text" placeholder="Name"
+                  style="padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem;">
+                <input #colorHex type="color" value="#6366f1"
+                  style="width: 40px; height: 40px; border: none; background: none; cursor: pointer; padding: 0;">
+                <button type="button" class="btn-save"
+                  (click)="addColor(colorName.value, colorHex.value); colorName.value=''"
+                  style="padding: 10px 20px; font-size: 0.9rem;">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-premium">
+        <button type="button" class="btn-cancel" (click)="closeModal()"><i class="bi bi-trash me-1"></i>
+          Discard</button>
+        <button type="submit" class="btn-save shadow-lg">
+          <i class="bi bi-check-lg me-1"></i>
+          {{ isEditing ? 'Update Changes' : 'Publish Product' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Other Modals (User, Order, Category) - Kept simple as they were -->
+<!-- User Modal -->
+<div class="modal-premium" *ngIf="showUserModal">
+  <div class="modal-content">
+    <div class="modal-header-premium">
+      <h3>
+        <i class="bi" [class.bi-person-plus]="!isUserEditing" [class.bi-person-gear]="isUserEditing"></i>
+        {{ isUserEditing ? 'Edit User' : 'Add New User' }}
+      </h3>
+      <button class="close-btn" (click)="closeUserModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form (ngSubmit)="saveUser()">
+      <div class="modal-body-premium">
+        <div class="grid-form">
+          <div class="input-group">
+            <label><i class="bi bi-person-fill me-1"></i> Full Name</label>
+            <input type="text" [(ngModel)]="editingUser.fullname" name="fullname" required placeholder="John Doe">
+          </div>
+          <div class="input-group">
+            <label><i class="bi bi-at me-1"></i> Username</label>
+            <input type="text" [(ngModel)]="editingUser.username" name="username" required placeholder="john_doe_99">
+          </div>
+          <div class="input-group" *ngIf="!isUserEditing">
+            <label><i class="bi bi-key-fill me-1"></i> Password</label>
+            <input type="password" [(ngModel)]="editingUser.password" name="password" required placeholder="••••••••">
+          </div>
+          <div class="input-group">
+            <label><i class="bi bi-shield-lock-fill me-1"></i> Access Role</label>
+            <select [(ngModel)]="editingUser.role" name="role" required>
+              <option value="customer">Customer</option>
+              <option value="employee">Employee</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-premium">
+        <button type="button" class="btn-cancel" (click)="closeUserModal()">Cancel</button>
+        <button type="submit" class="btn-save shadow-sm">
+          <i class="bi bi-save me-1"></i> Save User
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-premium" *ngIf="showOrderModal" style="max-width: 700px; width: 90%;">
+  <div class="modal-content">
+    <div class="modal-header-premium">
+      <h3><i class="bi bi-receipt me-2"></i> Order Detailed View</h3>
+      <button class="close-btn" (click)="closeOrderModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body-premium" *ngIf="selectedOrder">
+      <div class="order-summary-grid"
+        style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; background: #f8fafc; padding: 20px; border-radius: 16px;">
+        <div class="summary-col">
+          <small
+            style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.7rem;">Customer</small>
+          <p style="margin: 0; font-weight: 700; color: #1e293b;">{{ selectedOrder.user?.fullname }}</p>
+          <small style="color: #64748b;">{{ selectedOrder.user?.username }}</small>
+        </div>
+        <div class="summary-col" style="text-align: right;">
+          <small style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.7rem;">Order
+            Total</small>
+          <p style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--primary);">{{ selectedOrder.total |
+            currency }}</p>
+          <span class="status-badge" [class]="selectedOrder.status">{{ selectedOrder.status }}</span>
+        </div>
+      </div>
+
+      <h6 class="form-section-title"><i class="bi bi-box-seam me-2"></i> Purchased Items</h6>
+      <div class="items-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <div *ngFor="let item of selectedOrder.items"
+          style="display: flex; gap: 15px; background: white; padding: 12px; border-radius: 12px; border: 1px solid #f1f5f9; align-items: center;">
+          <img [src]="getImgUrl(item.img)" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+          <div style="flex: 1;">
+            <div style="font-weight: 700; color: #1e293b;">{{ item.title }}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">
+              Qty: <strong>{{ item.qty }}</strong> | Price: <strong>{{ item.price | currency }}</strong>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <span class="badge secondary">{{ item.size }}</span>
+            <div
+              style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 5px; border: 1px solid #ddd;"
+              [style.background]="item.color"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer-premium">
+      <button type="button" class="btn-cancel" (click)="closeOrderModal()">Close Window</button>
+      <button type="button" class="btn-save shadow-sm" (click)="closeOrderModal()">
+        <i class="bi bi-printer me-1"></i> Print Invoice
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Product Quick View Modal -->
+<div class="modal-premium" *ngIf="showProductModal" style="max-width: 750px; width: 90%;">
+  <div class="modal-content">
+    <div class="modal-header-premium">
+      <h3><i class="bi bi-eye-fill me-2"></i> Product Specification</h3>
+      <button class="close-btn" (click)="showProductModal = false"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body-premium" *ngIf="selectedProduct">
+      <div style="display: grid; grid-template-columns: 200px 1fr; gap: 30px;">
+        <div class="product-visual">
+          <img [src]="getImgUrl(selectedProduct.img)"
+            style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+          <div style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 12px; text-align: center;">
+            <small style="color: #94a3b8; display: block; font-size: 0.65rem; font-weight: 800;">SKU / ID</small>
+            <code style="font-size: 0.75rem; color: #6366f1;">{{ selectedProduct._id }}</code>
+          </div>
+        </div>
+
+        <div class="product-info">
+          <span class="badge"
+            style="background: #e0e7ff; color: #6366f1; margin-bottom: 10px; padding: 6px 14px;">{{selectedProduct.cat}}</span>
+          <h2 style="margin: 0 0 15px 0; font-size: 1.75rem; font-weight: 800; color: #0f172a;">{{ selectedProduct.title
+            }}</h2>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 20px;">
+            {{ selectedProduct.price | currency }}
+          </div>
+
+          <h6 class="form-section-title" style="margin-bottom: 10px;"><i class="bi bi-text-left me-1"></i> Story</h6>
+          <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6;">{{ selectedProduct.desc || 'No description
+            provided for this premium item.' }}</p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px;">
+            <div class="info-box">
+              <h6 style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; margin-bottom: 10px;">SIZES</h6>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span *ngFor="let s of selectedProduct.sizes"
+                  style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;">{{
+                  s }}</span>
+              </div>
+            </div>
+            <div class="info-box">
+              <h6 style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; margin-bottom: 10px;">COLORS</h6>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <div *ngFor="let c of selectedProduct.colors"
+                  style="width: 24px; height: 24px; border-radius: 6px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"
+                  [style.background]="c.hex" [title]="c.name"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer-premium">
+      <button type="button" class="btn-cancel" (click)="showProductModal = false">Finish Review</button>
+      <button type="button" class="btn-save shadow-sm"
+        (click)="openEditModal(selectedProduct); showProductModal = false">
+        <i class="bi bi-pencil-square me-1"></i> Edit Details
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-premium" *ngIf="showCategoryModal">
+  <div class="modal-content">
+    <div class="modal-header-premium">
+      <h3>
+        <i class="bi" [class.bi-tags-fill]="!isCategoryEditing" [class.bi-tag-fill]="isCategoryEditing"></i>
+        {{ isCategoryEditing ? 'Edit Category' : 'Add New Category' }}
+      </h3>
+      <button class="close-btn" (click)="closeCategoryModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form (ngSubmit)="saveCategory()">
+      <div class="modal-body-premium">
+        <div class="grid-form">
+          <div class="input-group">
+            <label><i class="bi bi-type me-1"></i> Category Name</label>
+            <input type="text" [(ngModel)]="editingCategory.name" name="catName" required
+              placeholder="e.g. Winter Wear">
+          </div>
+          <div class="input-group">
+            <label><i class="bi bi-justify-left me-1"></i> Description (Optional)</label>
+            <input type="text" [(ngModel)]="editingCategory.description" name="catDesc"
+              placeholder="Brief summary of the category">
+          </div>
+          <div class="input-group">
+            <label><i class="bi bi-link-45deg me-1"></i> Image URL (Optional)</label>
+            <input type="text" [(ngModel)]="editingCategory.image" name="catImg" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-premium">
+        <button type="button" class="btn-cancel" (click)="closeCategoryModal()">Cancel</button>
+        <button type="submit" class="btn-save shadow-sm">
+          <i class="bi bi-check2-circle me-1"></i>
+          {{ isCategoryEditing ? 'Update Category' : 'Register Category' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

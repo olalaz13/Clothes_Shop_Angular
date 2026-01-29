@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+.signin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, #1e293b, #0f172a);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+}
+
+/* Decorative background elements */
+.signin-container::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(99, 102, 241, 0.15);
+    filter: blur(80px);
+    border-radius: 50%;
+    top: 10%;
+    left: 20%;
+    z-index: 0;
+}
+
+.signin-container::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(168, 85, 247, 0.1);
+    filter: blur(100px);
+    border-radius: 50%;
+    bottom: 10%;
+    right: 20%;
+    z-index: 0;
+}
+
+.signin-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    z-index: 10;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.signin-card h2 {
+    color: #f8fafc;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    letter-spacing: -0.025em;
+}
+
+.signin-card .subtitle {
+    color: #94a3b8;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    margin-left: 0.25rem;
+}
+
+.signin-card input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.signin-card input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.signin-card input::placeholder {
+    color: #64748b;
+}
+
+.signin-card button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 1.5rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+}
+
+.signin-card button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+}
+
+.signin-card button:active {
+    transform: translateY(0);
+}
+
+.signin-card .link {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.signin-card .link a {
+    color: #818cf8;
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s;
+}
+
+.signin-card .link a:hover {
+    color: #a5b4fc;
+}
+
+/* Float Animation for background or items */
+.floating-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    opacity: 0.03;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    33% {
+        transform: translate(100px, 50px) rotate(120deg);
+    }
+
+    66% {
+        transform: translate(-50px, 100px) rotate(240deg);
+    }
+
+    100% {
+        transform: translate(0, 0) rotate(360deg);
+    }
+}

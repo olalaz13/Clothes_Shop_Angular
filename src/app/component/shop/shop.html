@@ -36,23 +36,25 @@
 <!-- Main Grid -->
 <main class="grid-wrap">
     <div class="shop-layout">
-    <aside class="shop-sidebar" [class.open]="isSidebarOpen">
+        <aside class="shop-sidebar" [class.open]="isSidebarOpen">
             <h3 style="margin-top:0">Filters</h3>
             <div class="filter-block">
                 <div class="muted" style="margin-bottom:6px">Categories</div>
                 <div class="cats" id="categories">
-                    <button *ngFor="let category of categories" class="chip" [class.active]="category===activeCategory"
-                        (click)="onCategoryChange(category)">{{category}}</button>
+                    <button *ngFor="let category of categories" class="chip"
+                        [class.active]="category.name===activeCategory"
+                        (click)="onCategoryChange(category.name)">{{category.name}}</button>
                 </div>
             </div>
             <div class="filter-block">
                 <div class="muted" style="margin-bottom:6px">Price:</div>
-                    <div class="row" style="gap:8px">
-                        <input id="priceMin" type="number" placeholder="Min" [(ngModel)]="priceMin" />
-                        <span class="muted">-</span>
-                        <input id="priceMax" type="number" placeholder="Max" [(ngModel)]="priceMax" />
-                    </div>
-                    <button id="applyPrice" class="btn" style="margin-top:8px;width:100%" (click)="onApplyPrice()">Apply</button>
+                <div class="row" style="gap:8px">
+                    <input id="priceMin" type="number" placeholder="Min" [(ngModel)]="priceMin" />
+                    <span class="muted">-</span>
+                    <input id="priceMax" type="number" placeholder="Max" [(ngModel)]="priceMax" />
+                </div>
+                <button id="applyPrice" class="btn" style="margin-top:8px;width:100%"
+                    (click)="onApplyPrice()">Apply</button>
             </div>
             <div class="filter-block">
                 <div class="muted" style="margin-bottom:6px">View</div>
@@ -79,37 +81,51 @@
             </div>
 
             <div class="grid" id="grid" [class.list-view]="viewMode==='list'" [class.grid-view]="viewMode==='grid'">
-                <div class="card" *ngFor="let product of filteredProducts">
-                    <div class="thumb" [style.backgroundImage]="'url(' + product.img + ')'" role="img"
-                        [attr.aria-label]="product.title"></div>
+                <div class="card" *ngFor="let product of paginatedProducts">
+                    <div class="thumb" [style.backgroundImage]="'url(' + getImgUrl(product.img) + ')'" role="img"
+                        [attr.aria-label]="product.title" [routerLink]="['/product', product._id]"></div>
                     <div>
                         <div style="display:flex;justify-content:space-between;align-items:center">
                             <div>
-                                <div style="font-weight:700">{{product.title}}</div>
+                                <div style="font-weight:700; cursor: pointer;" [routerLink]="['/product', product._id]">
+                                    {{product.title}}</div>
                                 <div class="muted" style="font-size:13px">{{product.cat}}</div>
                             </div>
                             <div class="price">${{product.price}}</div>
                         </div>
                         <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
                             <div class="muted" style="font-size:13px">Quick view for details</div>
-                            <div class="actions">
+                            <div class="actions" style="display: flex; gap: 8px; align-items: center;">
+                                <button class="fav-icon-btn" (click)="toggleFavorite(product)"
+                                    [class.active]="isFavorite(product)"
+                                    style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc; transition: color 0.3s;">
+                                    <i class="bi" [class.bi-heart-fill]="isFavorite(product)"
+                                        [class.bi-heart]="!isFavorite(product)"
+                                        [style.color]="isFavorite(product) ? '#ff6b6b' : '#ccc'"></i>
+                                </button>
                                 <button class="outline" (click)="quickView(product)">Quick view</button>
-                                <button class="add" style="background-color: #ff6b6b" (click)="addToCart(product)">Add</button>
+                                <button class="add" style="background-color: #ff6b6b"
+                                    (click)="addToCart(product)">Add</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <nav aria-label="Page navigation example">
+            <nav aria-label="Page navigation" *ngIf="totalPages > 1">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item"><a class="page-link" href="#" aria-label="Previous"><span
-                                aria-hidden="true">&laquo;</span></a></li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#" aria-label="Next"><span
-                                aria-hidden="true">&raquo;</span></a></li>
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                        <a class="page-link" (click)="$event.preventDefault(); setPage(currentPage - 1)"
+                            style="cursor: pointer;">&laquo;</a>
+                    </li>
+                    <li class="page-item" *ngFor="let p of pageNumbers" [class.active]="p === currentPage">
+                        <a class="page-link" (click)="$event.preventDefault(); setPage(p)" style="cursor: pointer;">{{ p
+                            }}</a>
+                    </li>
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                        <a class="page-link" (click)="$event.preventDefault(); setPage(currentPage + 1)"
+                            style="cursor: pointer;">&raquo;</a>
+                    </li>
                 </ul>
             </nav>
 
@@ -117,7 +133,8 @@
             <div class="modal open" id="modal" *ngIf="selectedProduct">
                 <div class="modal-card">
                     <div>
-                        <div class="m-thumb" id="mThumb" [style.backgroundImage]="'url(' + selectedProduct.img + ')'">
+                        <div class="m-thumb" id="mThumb"
+                            [style.backgroundImage]="'url(' + getImgUrl(selectedProduct.img) + ')'">
                         </div>
                     </div>
                     <div>
@@ -140,8 +157,15 @@
                                     <option>Size L</option>
                                 </select>
                             </div>
-                            <button class="add" style="background-color: #ff6b6b;" (click)="addToCart(selectedProduct)">Add to cart</button>
-                            <button class="outline" id="favBtn">❤ Favorite</button>
+                            <button class="add" style="background-color: #ff6b6b;"
+                                (click)="addToCart(selectedProduct)">Add to cart</button>
+                            <button class="outline" id="favBtn" (click)="toggleFavorite(selectedProduct)"
+                                [class.active]="isFavorite(selectedProduct)">
+                                <i class="bi" [class.bi-heart-fill]="isFavorite(selectedProduct)"
+                                    [class.bi-heart]="!isFavorite(selectedProduct)"
+                                    [style.color]="isFavorite(selectedProduct) ? '#ff6b6b' : 'inherit'"></i>
+                                {{ isFavorite(selectedProduct) ? ' Favorited' : ' Favorite' }}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -151,4 +175,5 @@
 </main>
 <!-- filters -->
 <div id="filtersOverlay" class="overlay" (click)="closeSidebar()" [class.show]="isSidebarOpen"></div>
-<button id="toggleFilters" class="btn btn-primary show-on-mobile" style="background-color: rgb(72, 72, 253);" title="Filters" (click)="toggleFilters()">Filters</button>
+<button id="toggleFilters" class="btn btn-primary show-on-mobile" style="background-color: rgb(72, 72, 253);"
+    title="Filters" (click)="toggleFilters()">Filters</button>

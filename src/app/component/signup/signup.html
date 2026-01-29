@@ -1,0 +1,36 @@
+<div class="signin-container">
+    <div class="floating-circle" style="width: 50px; height: 50px; top: 15%; left: 15%;"></div>
+    <div class="floating-circle" style="width: 100px; height: 100px; bottom: 20%; right: 5%;"></div>
+    <div class="floating-circle" style="width: 40px; height: 40px; top: 70%; left: 75%;"></div>
+
+    <div class="signin-card">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join our fashion community today.</p>
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="fullname" name="fullname" placeholder="John Doe">
+        </div>
+
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" [(ngModel)]="username" name="username" placeholder="johndoe123">
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="email" name="email" placeholder="john@example.com">
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••">
+        </div>
+
+        <button (click)="signUp()">Create Account</button>
+
+        <div class="link">
+            <p>Already have an account? <a routerLink="/signin">Log in</a></p>
+        </div>
+    </div>
+</div>

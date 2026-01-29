@@ -1,115 +1,93 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Product } from '../models/product.model';
+import { Category } from '../models/category.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
+  private apiUrl = 'http://localhost:5000/api/products';
+  private uploadUrl = 'http://localhost:5000/api/upload';
+  private categoryUrl = 'http://localhost:5000/api/categories';
 
-  // Mảng chứa danh sách sản phẩm mẫu
-  public products: Product[] = [
-    { 
-      id: 1, 
-      title: 'Linen Shirt', 
-      price: 49, 
-      cat: 'Shirts', 
-      img: 'https://th.bing.com/th/id/OIP.45FSceBlhojQFEIv3utYkAHaHa?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3', 
-      desc: 'Lightweight linen shirt — perfect for summer.' 
-    },
-    { 
-      id: 2, 
-      title: 'Classic Tee', 
-      price: 19, 
-      cat: 'T-Shirts', 
-      img: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1200&auto=format&fit=crop', 
-      desc: 'Soft cotton t-shirt with a relaxed fit.' 
-    },
-    { 
-      id: 3, 
-      title: 'Denim Jacket', 
-      price: 89, 
-      cat: 'Jackets', 
-      img: 'img/assets_task_01k5zjz5gze0xaf00smjmrrtdj_1758775483_img_0.webp', 
-      desc: 'Timeless denim jacket with contrast stitching.' 
-    },
-    { 
-      id: 4, 
-      title: 'Sport Shorts', 
-      price: 29, 
-      cat: 'Shorts', 
-      img: 'https://th.bing.com/th/id/OIP.8TflCd8Tm4FxGm0CPbE0vgHaHa?w=210&h=210&c=7&r=0&o=7&rm=3', 
-      desc: 'Breathable shorts for everyday activity.' 
-    },
-    { 
-      id: 5, 
-      title: 'Summer Dress', 
-      price: 69, 
-      cat: 'Dresses', 
-      img: 'https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=1200&auto=format&fit=crop', 
-      desc: 'Flowy dress made from viscose blend.' 
-    },
-    { 
-      id: 6, 
-      title: 'Hooded Sweatshirt', 
-      price: 59, 
-      cat: 'Sweatshirts', 
-      img: 'img/assets_task_01k5zjxr1qfpaahfypmq9tgb5h_1758775432_img_0.webp', 
-      desc: 'Cozy hoodie with soft inner lining.' 
-    },
-    { 
-      id: 7, 
-      title: 'Chino Pants', 
-      price: 54, 
-      cat: 'Pants', 
-      img: 'https://th.bing.com/th/id/OIP.8mkxqa1lETx5srC9oaWjLgHaKu?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3', 
-      desc: 'Smart-casual chinos, straight fit.' 
-    },
-    { 
-      id: 8, 
-      title: 'Canvas Sneakers', 
-      price: 79, 
-      cat: 'Shoes', 
-      img: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=1200&auto=format&fit=crop', 
-      desc: 'Everyday sneakers with rubber sole.' 
-    }
-  ];
+  constructor(private http: HttpClient) { }
 
-  // Trả về toàn bộ danh sách sản phẩm
-  getProducts(): Product[] {
-    return this.products;
+  uploadImage(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<{ url: string }>(this.uploadUrl, formData);
   }
 
-  // Tìm và trả về sản phẩm dựa theo id (nếu không tìm thấy trả về undefined)
-  getProductById(id: number): Product | undefined {
-    return this.products.find(p => p.id === id);
+  // Trả về toàn bộ danh sách sản phẩm từ API
+  getProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(this.apiUrl);
   }
 
-  // Trả về danh sách các danh mục sản phẩm, có thêm mục "All" ở đầu
-  getCategories(): string[] {
-    const cats = new Set(this.products.map(p => p.cat)); // Set để loại bỏ trùng lặp
-    return ['All', ...cats];
+  // Tìm và trả về sản phẩm dựa theo id từ API
+  getProductById(id: string | number): Observable<Product> {
+    return this.http.get<Product>(`${this.apiUrl}/${id}`);
   }
 
-  // Lọc sản phẩm theo danh mục, từ khóa tìm kiếm và kiểu sắp xếp
-  filterProducts(category: string, searchTerm: string = '', sortBy: string = 'popular'): Product[] {
-    // Lọc sản phẩm theo danh mục và từ khóa
-    let filtered = this.products.filter(p => 
+  // Thêm sản phẩm mới
+  addProduct(product: Partial<Product>): Observable<Product> {
+    return this.http.post<Product>(this.apiUrl, product);
+  }
+
+  // Cập nhật sản phẩm
+  updateProduct(id: string | number, product: Partial<Product>): Observable<Product> {
+    return this.http.put<Product>(`${this.apiUrl}/${id}`, product);
+  }
+
+  // Xóa sản phẩm
+  deleteProduct(id: string | number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  // Lọc sản phẩm (Xử lý client-side cho đơn giản hoặc có thể mở rộng API sau)
+  filterProducts(products: Product[], category: string, searchTerm: string = '', sortBy: string = 'popular'): Product[] {
+    let filtered = products.filter(p =>
       (category === 'All' || p.cat === category) &&
       (p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       p.cat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       p.desc.toLowerCase().includes(searchTerm.toLowerCase()))
+        p.cat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.desc.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    // Sắp xếp sản phẩm theo giá
     switch (sortBy) {
-      case 'asc':   // Tăng dần
+      case 'asc':
         filtered.sort((a, b) => a.price - b.price);
         break;
-      case 'desc':  // Giảm dần
+      case 'desc':
         filtered.sort((a, b) => b.price - a.price);
         break;
     }
 
     return filtered;
+  }
+
+  // Categories CRUD
+  getCategories(): Observable<Category[]> {
+    return this.http.get<Category[]>(this.categoryUrl);
+  }
+
+  addCategory(category: Partial<Category>): Observable<Category> {
+    return this.http.post<Category>(this.categoryUrl, category);
+  }
+
+  updateCategory(id: string, category: Partial<Category>): Observable<Category> {
+    return this.http.put<Category>(`${this.categoryUrl}/${id}`, category);
+  }
+
+  deleteCategory(id: string): Observable<any> {
+    return this.http.delete(`${this.categoryUrl}/${id}`);
+  }
+
+  getImgUrl(url: string | undefined): string {
+    if (!url) return 'https://placehold.co/600x400?text=No+Image';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+    if (url.startsWith('img/')) return `/${url}`;
+    return url;
   }
 }

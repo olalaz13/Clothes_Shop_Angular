@@ -1,17 +1,17 @@
-<!-- Toast Notification -->
+<!-- Toast -->
 <div id="toast"></div>
 
-<!-- Main App Structure -->
+<!-- Main -->
 <div class="app-container">
-  <app-navbar></app-navbar>
-  
+  <app-navbar *ngIf="!isDashboardPage()"></app-navbar>
+
   <main class="main-content">
     <router-outlet></router-outlet>
   </main>
-  
-  <app-footer></app-footer>
+
+  <app-footer *ngIf="!isDashboardPage()"></app-footer>
 </div>
 
-<!-- Cart Panel (will be dynamically created by service) -->
+<!-- Cart Panel -->
 <div id="cartPanel" style="display: none;"></div>
 <div id="cartOverlay" style="display: none;"></div>

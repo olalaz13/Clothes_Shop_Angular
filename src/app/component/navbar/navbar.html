@@ -1,4 +1,3 @@
-
 <!-- Navbar -->
 <nav class="nav">
     <div class="brand">
@@ -16,6 +15,7 @@
             <li><a [routerLink]="['/shop']" routerLinkActive="active">Shop</a></li>
             <li><a [routerLink]="['/about']" routerLinkActive="active">About</a></li>
             <li><a [routerLink]="['/contact']" routerLinkActive="active">Contact</a></li>
+            <li *ngIf="isStaff"><a [routerLink]="['/dashboard']" routerLinkActive="active">Dashboard</a></li>
         </ul>
     </div>
 
@@ -59,10 +59,11 @@
 <!-- Mobile menu -->
 <div id="mobileMenu" class="open" *ngIf="isMobileMenuOpen">
     <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;">
-    <li><a [routerLink]="['/']" (click)="toggleMobileMenu()">Home</a></li>
-    <li><a [routerLink]="['/shop']" (click)="toggleMobileMenu()">Shop</a></li>
-    <li><a [routerLink]="['/about']" (click)="toggleMobileMenu()">About</a></li>
-    <li><a [routerLink]="['/contact']" (click)="toggleMobileMenu()">Contact</a></li>
+        <li><a [routerLink]="['/']" (click)="toggleMobileMenu()">Home</a></li>
+        <li><a [routerLink]="['/shop']" (click)="toggleMobileMenu()">Shop</a></li>
+        <li><a [routerLink]="['/about']" (click)="toggleMobileMenu()">About</a></li>
+        <li><a [routerLink]="['/contact']" (click)="toggleMobileMenu()">Contact</a></li>
+        <li *ngIf="isStaff"><a [routerLink]="['/dashboard']" (click)="toggleMobileMenu()">Dashboard</a></li>
     </ul>
     <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
         <ng-container *ngIf="isLoggedIn; else mobileLoggedOut">

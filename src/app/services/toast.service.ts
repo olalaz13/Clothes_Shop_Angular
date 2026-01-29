@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ToastService {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
 
   // Hiển thị thông báo toast với nội dung message
   show(message: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     // Nếu đã có toast đang hiện, xóa nó trước khi tạo toast mới
     const existingToast = document.getElementById('toast');
     if (existingToast) {
@@ -33,7 +36,7 @@ export class ToastService {
       text-align: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
-    
+
     toast.innerHTML = message;  // Gán nội dung thông báo
     document.body.appendChild(toast); // Thêm toast vào body
 

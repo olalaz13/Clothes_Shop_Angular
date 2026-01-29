@@ -1,5 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import { CartService } from './cart.service';
 import { ToastService } from './toast.service';
 import { ProductService } from './product.service';
@@ -14,6 +15,7 @@ export class CartPanelService {
     private cartService: CartService,
     private toastService: ToastService,
     private productService: ProductService,
+    private router: Router,
     @Inject(PLATFORM_ID) private platformId: any
   ) {
     // Xác định đang chạy trên trình duyệt không
@@ -50,11 +52,11 @@ export class CartPanelService {
       flex-direction: column;
       font-family: 'Segoe UI', system-ui, sans-serif;
     `;
-    
+
     // Thêm HTML nội dung
     cartPanel.innerHTML = this.getCartPanelHTML();
     document.body.appendChild(cartPanel);
-    
+
     // Gắn sự kiện cho nút và overlay
     this.setupCartPanelEvents();
     this.createCartOverlay();
@@ -90,7 +92,7 @@ export class CartPanelService {
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 0.9rem;">
           <span style="color: #666;">Shipping</span>
-          <span style="color: #27ae60;">Free</span>
+          <span id="cartShippingFee" style="color: #27ae60;">Free</span>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
           <span style="font-weight: 600;">Total</span>
@@ -112,8 +114,8 @@ export class CartPanelService {
         this.toastService.show('Your cart is empty!');
         return;
       }
-      this.toastService.show('Proceeding to checkout...');
       this.closeCartPanel();
+      this.router.navigate(['/checkout']);
     });
   }
 
@@ -206,10 +208,9 @@ export class CartPanelService {
   private renderCartItems(itemsEl: HTMLElement, cart: any[]): void {
     itemsEl.innerHTML = ''; // Xóa các item cũ
 
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
       const itemTotal = item.qty * item.price;
-      const product = this.productService.getProductById(item.id);
-      const resolvedImg = product && (product.img as string) ? product.img : (item.img || '');
+      const resolvedImg = item.img || '';
 
       const itemEl = document.createElement('div');
       itemEl.style.cssText = `
@@ -227,18 +228,21 @@ export class CartPanelService {
           <img src="${this.getImageSrc(resolvedImg)}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         <div style="flex: 1;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #333;">${item.title}</h4>
             <span style="font-weight: 700; color: #e44d26;">$${itemTotal}</span>
           </div>
-          <p style="margin: 0 0 12px; font-size: 0.85rem; color: #888;">$${item.price} each</p>
+          <p style="margin: 0 0 8px; font-size: 0.85rem; color: #888;">
+            ${item.size ? `<span style="background:#eee;padding:2px 6px;border-radius:4px;margin-right:4px;">Size: ${item.size}</span>` : ''}
+            ${item.color ? `<span style="background:#eee;padding:2px 6px;border-radius:4px;">Color: ${item.color}</span>` : ''}
+          </p>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <button class="decrease-qty" data-id="${item.id}" style="width:28px;height:28px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">−</button>
+              <button class="decrease-qty" data-index="${index}" style="width:28px;height:28px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">−</button>
               <span style="min-width:30px;text-align:center;font-weight:600;">${item.qty}</span>
-              <button class="increase-qty" data-id="${item.id}" style="width:28px;height:28px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">+</button>
+              <button class="increase-qty" data-index="${index}" style="width:28px;height:28px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">+</button>
             </div>
-            <button class="remove-item" data-id="${item.id}" style="background:none;border:none;color:#e74c3c;cursor:pointer;padding:4px 8px;border-radius:4px;font-size:0.8rem;">Remove</button>
+            <button class="remove-item" data-index="${index}" style="background:none;border:none;color:#e74c3c;cursor:pointer;padding:4px 8px;border-radius:4px;font-size:0.8rem;">Remove</button>
           </div>
         </div>
       `;
@@ -246,34 +250,46 @@ export class CartPanelService {
       itemsEl.appendChild(itemEl);
     });
 
-    // Gắn sự kiện tăng/giảm/remove
+    // Use index to correctly identify the item variant
     itemsEl.querySelectorAll('.decrease-qty').forEach(btn => {
       btn.addEventListener('click', e => {
-        const id = parseInt((e.target as HTMLElement).getAttribute('data-id') || '0');
-        const item = cart.find(i => i.id === id);
-        if (item && item.qty > 1) {
-          this.cartService.updateQuantity(id, item.qty - 1);
-          this.renderCartPanel();
+        const idxStr = (e.target as HTMLElement).getAttribute('data-index');
+        if (idxStr !== null) {
+          const idx = parseInt(idxStr);
+          const item = cart[idx];
+          if (item && item.qty > 1) {
+            this.cartService.updateQuantity(item.id, item.qty - 1, item.size, item.color);
+            this.renderCartPanel();
+          }
         }
       });
     });
 
     itemsEl.querySelectorAll('.increase-qty').forEach(btn => {
       btn.addEventListener('click', e => {
-        const id = parseInt((e.target as HTMLElement).getAttribute('data-id') || '0');
-        const item = cart.find(i => i.id === id);
-        if (item) {
-          this.cartService.updateQuantity(id, item.qty + 1);
-          this.renderCartPanel();
+        const idxStr = (e.target as HTMLElement).getAttribute('data-index');
+        if (idxStr !== null) {
+          const idx = parseInt(idxStr);
+          const item = cart[idx];
+          if (item) {
+            this.cartService.updateQuantity(item.id, item.qty + 1, item.size, item.color);
+            this.renderCartPanel();
+          }
         }
       });
     });
 
     itemsEl.querySelectorAll('.remove-item').forEach(btn => {
       btn.addEventListener('click', e => {
-        const id = parseInt((e.target as HTMLElement).getAttribute('data-id') || '0');
-        this.cartService.removeFromCart(id);
-        this.renderCartPanel();
+        const idxStr = (e.target as HTMLElement).getAttribute('data-index');
+        if (idxStr !== null) {
+          const idx = parseInt(idxStr);
+          const item = cart[idx];
+          if (item) {
+            this.cartService.removeFromCart(item.id, item.size, item.color);
+            this.renderCartPanel();
+          }
+        }
       });
     });
   }
@@ -281,18 +297,24 @@ export class CartPanelService {
   // Cập nhật subtotal & total
   private updateCartTotals(): void {
     if (!this.isBrowser) return;
-    const subtotal = this.cartService.getSubtotal();
+    const subtotal = this.cartService.getTotalPrice();
+    const shippingFee = subtotal > 100 ? 0 : 10;
+    const total = subtotal + shippingFee;
+
     const cartSubtotal = document.getElementById('cartSubtotal');
+    const cartShippingFee = document.getElementById('cartShippingFee');
     const cartTotal = document.getElementById('cartTotal');
+
     if (cartSubtotal) cartSubtotal.textContent = `$${subtotal}`;
-    if (cartTotal) cartTotal.textContent = `$${subtotal}`;
+    if (cartShippingFee) {
+      cartShippingFee.textContent = shippingFee === 0 ? 'Free' : `$${shippingFee}`;
+      cartShippingFee.style.color = shippingFee === 0 ? '#27ae60' : '#333';
+    }
+    if (cartTotal) cartTotal.textContent = `$${total}`;
   }
 
   // Chuẩn hóa path ảnh
   private getImageSrc(img: string): string {
-    if (!img) return '';
-    const trimmed = img.trim();
-    if (trimmed.startsWith('http') || trimmed.startsWith('/')) return trimmed;
-    return '/' + trimmed.replace(/^\/+/, '');
+    return this.productService.getImgUrl(img);
   }
 }

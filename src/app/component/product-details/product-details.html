@@ -1,0 +1,146 @@
+<div class="product-page">
+    <!-- Premium Header / Carousel Mock -->
+    <header class="product-hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <nav class="breadcrumb-nav">
+                <a routerLink="/">Home</a>
+                <i class="bi bi-chevron-right"></i>
+                <a routerLink="/shop">Shop</a>
+                <i class="bi bi-chevron-right"></i>
+                <span>{{ product?.cat }}</span>
+            </nav>
+            <h1>Premium Collection</h1>
+            <p>Discover the perfect blend of style and comfort with our latest arrivals.</p>
+        </div>
+    </header>
+
+    <main class="container py-5" *ngIf="product; else loadingOrError">
+        <div class="product-main-grid">
+            <!-- Left: Product Image -->
+            <div class="product-gallery">
+                <div class="main-image-preview">
+                    <img [src]="getImgUrl(product.img)" [alt]="product.title">
+                    <div class="zoom-icon"><i class="bi bi-zoom-in"></i></div>
+                </div>
+                <div class="thumbnail-list">
+                    <div class="thumb-item active"><img [src]="getImgUrl(product.img)" alt="Thumb"></div>
+                    <!-- Mock thumbnails -->
+                    <div class="thumb-item"><img [src]="getImgUrl(product.img)" style="filter: grayscale(1);"
+                            alt="Thumb"></div>
+                    <div class="thumb-item"><img [src]="getImgUrl(product.img)" style="filter: sepia(0.5);" alt="Thumb">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Product Info -->
+            <div class="product-info-panel">
+                <div class="info-header">
+                    <span class="category-badge">{{ product.cat }}</span>
+                    <h2 class="product-title">{{ product.title }}</h2>
+                    <div class="rating">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                        <span>(45 reviews)</span>
+                    </div>
+                </div>
+
+                <div class="price-box">
+                    <span class="current-price">${{ product.price }}</span>
+                    <span class="old-price" *ngIf="product.price">${{ product.price + 20 }}</span>
+                    <span class="discount-tag" *ngIf="product.price">SAVE 20%</span>
+                </div>
+
+                <p class="product-description">
+                    {{ product.desc || 'No description available for this premium piece. Crafted with care and
+                    high-quality materials to ensure you look your best.' }}
+                </p>
+
+                <div class="product-options">
+                    <div class="option-group">
+                        <label>Size: <strong>{{ selectedSize }}</strong></label>
+                        <div class="size-chips">
+                            <button *ngFor="let size of availableSizes" class="chip"
+                                [class.active]="selectedSize === size" (click)="selectSize(size)">
+                                {{ size }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <label>Color: <strong>{{ selectedColor }}</strong></label>
+                        <div class="color-dots">
+                            <span *ngFor="let col of availableColors" class="dot"
+                                [class.active]="selectedColor === col.name" [style.background]="col.hex"
+                                (click)="selectColor(col.name)">
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buy-actions">
+                    <button class="btn-add-cart" (click)="addToCart()">
+                        <i class="bi bi-bag-plus"></i> ADD TO CART
+                    </button>
+                    <button class="btn-wishlist" [class.active]="isFavorite()" (click)="toggleWishlist()">
+                        <i class="bi" [class.bi-heart-fill]="isFavorite()" [class.bi-heart]="!isFavorite()"></i>
+                    </button>
+                </div>
+
+                <div class="trust-badges">
+                    <div class="badge-item">
+                        <i class="bi bi-truck"></i>
+                        <span>
+                            {{ product.price > 100 ? 'Free Shipping' : 'Shipping: $10' }}
+                        </span>
+                    </div>
+                    <div class="badge-item">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Secure Checkout</span>
+                    </div>
+                    <div class="badge-item">
+                        <i class="bi bi-arrow-left-right"></i>
+                        <span>30 Days Return</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products Section -->
+        <section class="related-section mt-5">
+            <div class="section-title">
+                <h3>You May Also Like</h3>
+                <div class="line"></div>
+            </div>
+
+            <div class="related-grid">
+                <div class="related-card" *ngFor="let item of relatedProducts" [routerLink]="['/product', item._id]">
+                    <div class="card-img">
+                        <img [src]="getImgUrl(item.img)" [alt]="item.title">
+                        <button class="quick-add"><i class="bi bi-plus-lg"></i></button>
+                    </div>
+                    <div class="card-body">
+                        <h5>{{ item.title }}</h5>
+                        <p>${{ item.price }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <ng-template #loadingOrError>
+        <div class="container text-center py-5">
+            <div *ngIf="loading">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-3">Loading product details...</p>
+            </div>
+            <div *ngIf="!loading && !product">
+                <h3>Product not found</h3>
+                <button class="btn btn-outline-primary mt-3" routerLink="/shop">Back to Shop</button>
+            </div>
+        </div>
+    </ng-template>
+</div>

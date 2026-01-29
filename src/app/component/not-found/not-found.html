@@ -1,0 +1,24 @@
+<div class="error-container">
+    <div class="background-glow"></div>
+    <div class="content">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Oops! You're Lost.</h1>
+        <p class="error-message">
+            The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+            Maybe it's just trying to hide in style?
+        </p>
+        <div class="actions">
+            <button class="btn-primary" routerLink="/">
+                <i class="bi bi-house-door-fill"></i> Back to Home
+            </button>
+            <button class="btn-secondary" (click)="goBack()">
+                <i class="bi bi-arrow-left"></i> Previous Page
+            </button>
+        </div>
+    </div>
+
+    <!-- Decorative floating elements -->
+    <div class="floating-item item-1">👕</div>
+    <div class="floating-item item-2">👜</div>
+    <div class="floating-item item-3">👟</div>
+</div>

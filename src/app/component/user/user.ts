@@ -5,176 +5,179 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StorageService } from '../../services/storage.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService } from '../../services/auth.service';
+import { OrderService } from '../../services/order.service';
+import { ProductService } from '../../services/product.service';
+import { CartService } from '../../services/cart.service';
 
-interface Address {
-  title?: string;
-  fullName?: string;
-  phone?: string;
-  street?: string;
-  city?: string;
-  district?: string;
-  ward?: string;
-  default?: boolean;
-}
-
-interface OrderItem {
-  id: number;
-  name: string;
-  image?: string;
-}
-
-interface Order {
-  id: number;
-  date: string;
-  status: string;
-  items: OrderItem[];
-  total: number;
-}
-
-interface WishlistItem {
-  id: number;
-  name: string;
-  image?: string;
-  price?: number;
-}
-
-interface UserModel {
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  birthday?: string;
-  gender?: string;
-  addresses?: Address[];
-  orders?: Order[];
-  wishlist?: WishlistItem[];
-  createdAt?: string;
-}
+import { User as UserModel } from '../../models/user.model';
+import { Order } from '../../models/order.model';
+import { Product } from '../../models/product.model';
 
 @Component({
   selector: 'app-user',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './user.html',
-  styleUrls: ['./user.css','../../../../public/css/style.css']
+  styleUrls: ['./user.css', '../../../../public/css/style.css']
 })
-export class User implements OnInit {
-  // Người dùng hiện tại, khởi tạo mặc định để tránh lỗi khi dùng ngModel
-  currentUser: UserModel = {
-    username: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    birthday: '',
-    gender: '',
-    addresses: [],
-    orders: [],
-    wishlist: [],
-    createdAt: ''
-  };
-
-  // Section hiện tại của trang user (profile, orders, addresses, wishlist, security)
+export class UserComponent implements OnInit {
+  currentUser: UserModel | null = null;
+  orders: Order[] = [];
+  wishlistProducts: Product[] = [];
+  loading = false;
   currentSection: 'profile' | 'orders' | 'addresses' | 'wishlist' | 'security' = 'profile';
 
+  // Address Modal State
+  showAddressModal = false;
+  newAddress = {
+    title: 'Home',
+    fullName: '',
+    phone: '',
+    street: '',
+    city: '',
+    default: false
+  };
+
   constructor(
-    private storage: StorageService,  // Dùng để lưu/truy xuất dữ liệu localStorage
-    private toast: ToastService,      // Hiển thị thông báo
-    private router: Router             // Điều hướng router
-  ) {}
+    private authService: AuthService,
+    private orderService: OrderService,
+    private productService: ProductService,
+    private cartService: CartService,
+    private storage: StorageService,
+    private toast: ToastService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
-    this.loadUserData();               // Load dữ liệu người dùng khi khởi tạo
+    this.authService.currentUser.subscribe(user => {
+      this.currentUser = user;
+
+      // Only redirect if we are in the browser and definitely have no user
+      if (this.authService.isBrowser && !user) {
+        this.router.navigate(['/signin']);
+      } else if (user) {
+        this.loadMyOrders();
+        this.loadWishlist();
+        // Prefill address name if empty
+        if (!this.newAddress.fullName) this.newAddress.fullName = user.fullname || '';
+      }
+    });
+
+    // Default to 'orders' view if user comes from checkout
+    // this.switchSection('orders'); // Let's keep profile as default
   }
 
-  // Tạo một user mặc định nếu chưa có dữ liệu
-  private makeDefaultUser(username: string): UserModel {
-    return {
-      username,
-      firstName: 'Nguyễn Văn',
-      lastName: 'A',
-      email: `${username}@example.com`,
-      phone: '+84 123 456 789',
-      birthday: '1990-01-01',
-      gender: 'male',
-      addresses: [],
-      orders: [],
-      wishlist: [],
-      createdAt: new Date().toISOString()
-    };
-  }
-
-  // Load dữ liệu user từ localStorage
-  loadUserData(): void {
-    const username = this.storage.getItem('username');
-    if (!username) {
-      // Nếu chưa đăng nhập → điều hướng sang signin
-      this.router.navigate(['/signin']);
-      return;
-    }
-
-    const userData = this.storage.getObject<UserModel>(`user_${username}`);
-    if (userData) {
-      this.currentUser = userData;
-    } else {
-      // Nếu chưa có dữ liệu → tạo mặc định và lưu lại
-      this.currentUser = this.makeDefaultUser(username);
-      this.saveUserData();
-    }
-  }
-
-  // Lưu dữ liệu user vào localStorage
-  saveUserData(): void {
+  loadMyOrders(): void {
     if (!this.currentUser) return;
-    this.storage.setObject(`user_${this.currentUser.username}`, this.currentUser);
+    this.loading = true;
+    this.orderService.getMyOrders().subscribe({
+      next: (data) => {
+        this.orders = data;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.toast.show('Failed to load orders');
+      }
+    });
   }
 
-  // Chuyển section hiển thị
-  switchSection(section: any): void {
-    if (!section) return;
+  loadWishlist(): void {
+    if (!this.authService.isBrowser) return;
+    this.productService.getProducts().subscribe(products => {
+      this.wishlistProducts = products.filter(p => {
+        const id = p._id || p.id;
+        return id ? this.cartService.isFavorite(id.toString()) : false;
+      });
+    });
+  }
+
+  switchSection(section: 'profile' | 'orders' | 'addresses' | 'wishlist' | 'security'): void {
     this.currentSection = section;
+    if (section === 'wishlist') this.loadWishlist();
+    if (section === 'orders') this.loadMyOrders();
   }
 
-  // Lưu thông tin cá nhân
   saveProfile(): void {
-    if (!this.currentUser) return;
-    this.saveUserData();
-    this.toast.show('Thông tin đã được cập nhật thành công!');
+    if (this.currentUser) {
+      this.authService.updateProfile(this.currentUser).subscribe({
+        next: () => this.toast.show('✅ Profile updated successfully!'),
+        error: () => this.toast.show('❌ Failed to update profile')
+      });
+    }
   }
 
-  // Thêm địa chỉ mới (hiện tại chưa triển khai)
-  addNewAddress(): void {
-    this.toast.show('Tính năng thêm địa chỉ mới sẽ được mở');
-  }
-
-  // Xóa sản phẩm khỏi wishlist
-  removeFromWishlist(itemId: number): void {
-    if (!this.currentUser) return;
-    this.currentUser.wishlist = (this.currentUser.wishlist || []).filter(i => i.id !== itemId);
-    this.saveUserData();
-    this.toast.show('Đã xóa sản phẩm khỏi danh sách yêu thích');
-  }
-
-  // Đăng xuất
   logout(): void {
-    this.storage.removeItem('username');
+    this.authService.logout();
     this.router.navigate(['/']);
   }
 
-  // Format giá theo VND
-  formatPrice(price?: number): string {
-    if (price == null) return '';
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-  }
-
-  // Số lượng đơn hàng
   get ordersCount(): number {
-    return this.currentUser?.orders?.length || 0;
+    return this.orders.length;
   }
 
-  // Số lượng sản phẩm trong wishlist
   get wishlistCount(): number {
-    return this.currentUser?.wishlist?.length || 0;
+    return this.wishlistProducts.length;
+  }
+
+  // ADDRESS MANAGEMENT
+  openAddressModal(): void {
+    this.showAddressModal = true;
+  }
+
+  closeAddressModal(): void {
+    this.showAddressModal = false;
+  }
+
+  saveAddress(): void {
+    if (!this.currentUser) return;
+    if (!this.newAddress.street || !this.newAddress.phone) {
+      this.toast.show('Please fill in street and phone');
+      return;
+    }
+
+    if (!this.currentUser.addresses) this.currentUser.addresses = [];
+
+    // If setting as default, unset others
+    if (this.newAddress.default) {
+      this.currentUser.addresses.forEach((a: any) => a.default = false);
+    }
+
+    this.currentUser.addresses.push({ ...this.newAddress });
+    this.saveProfile();
+    this.closeAddressModal();
+    this.newAddress = { title: 'Home', fullName: this.currentUser.fullname || '', phone: '', street: '', city: '', default: false };
+  }
+
+  deleteAddress(index: number): void {
+    if (this.currentUser && this.currentUser.addresses) {
+      this.currentUser.addresses.splice(index, 1);
+      this.saveProfile();
+    }
+  }
+
+  // WISHLIST MANAGEMENT
+  removeFromWishlist(product: Product): void {
+    const productId = product._id || product.id;
+    if (productId) {
+      this.cartService.toggleFavorite(productId.toString());
+      this.loadWishlist();
+      this.toast.show('Removed from wishlist');
+    }
+  }
+
+  addToCartFromWishlist(product: Product): void {
+    this.cartService.addToCart(product);
+    this.toast.show('Added to cart!');
+  }
+
+  formatPrice(price?: number): string {
+    if (price == null) return '$0.00';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+  }
+
+  getImgUrl(url: string | undefined): string {
+    return this.productService.getImgUrl(url);
   }
 }

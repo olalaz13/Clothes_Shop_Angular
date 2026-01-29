@@ -1,0 +1,86 @@
+<div class="checkout-container">
+    <div class="checkout-layout">
+        <!-- Shipping Information -->
+        <div class="checkout-form">
+            <h2>Shipping Information</h2>
+            <form (ngSubmit)="placeOrder()">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" [(ngModel)]="shippingData.fullname" name="fullname"
+                        placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Shipping Address</label>
+                    <input type="text" [(ngModel)]="shippingData.address" name="address"
+                        placeholder="Room/House number, Street, District..." required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" [(ngModel)]="shippingData.phone" name="phone" placeholder="0123-456-789"
+                        required>
+                </div>
+
+                <h2 style="margin-top: 40px;">Payment Method</h2>
+                <div class="payment-options">
+                    <label class="payment-card" [class.active]="shippingData.paymentMethod === 'cod'">
+                        <input type="radio" name="payment" value="cod" [(ngModel)]="shippingData.paymentMethod">
+                        <div class="payment-info">
+                            <i class="bi bi-cash-coin"></i>
+                            <span>Cash on Delivery</span>
+                        </div>
+                    </label>
+                    <label class="payment-card" [class.active]="shippingData.paymentMethod === 'card'">
+                        <input type="radio" name="payment" value="card" [(ngModel)]="shippingData.paymentMethod">
+                        <div class="payment-info">
+                            <i class="bi bi-credit-card"></i>
+                            <span>Credit Card</span>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn" [disabled]="cartItems.length === 0">
+                    Place Order (${{ total }})
+                </button>
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            <div class="summary-items">
+                <div class="summary-item" *ngFor="let item of cartItems">
+                    <img [src]="getImgUrl(item.img)" [alt]="item.title">
+                    <div class="item-details">
+                        <span class="item-title">{{ item.title }}</span>
+                        <div class="item-meta" style="font-size: 0.8rem; color: #666;">
+                            <span *ngIf="item.size">Size: {{item.size}}</span>
+                            <span *ngIf="item.color" style="margin-left: 8px;">Color: {{item.color}}</span>
+                        </div>
+                        <span class="item-qty">Qty: {{ item.qty }}</span>
+                    </div>
+                    <span class="item-price">${{ item.price * item.qty }}</span>
+                </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ subtotal }}</span>
+            </div>
+            <div class="total-row">
+                <span>Shipping:</span>
+                <span>{{ shippingFee === 0 ? 'Free' : '$' + shippingFee }}</span>
+            </div>
+            <div class="total-row grand-total">
+                <span>Total:</span>
+                <span>${{ total }}</span>
+            </div>
+
+            <div class="security-badge">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Secure Checkout with AES-256</span>
+            </div>
+        </div>
+    </div>
+</div>
