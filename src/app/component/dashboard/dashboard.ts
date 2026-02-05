@@ -102,6 +102,7 @@ export class Dashboard implements OnInit {
     this.productService.getProducts().subscribe({
       next: (data) => {
         this.products = data;
+        this.processStatistics();
         checkDone();
       },
       error: () => { checkDone(); }
@@ -112,9 +113,7 @@ export class Dashboard implements OnInit {
     this.adminService.getOrders().subscribe({
       next: (data) => {
         this.orders = data;
-        this.sumRevenue = this.orders
-          .filter(o => o.status !== 'cancelled')
-          .reduce((sum, o) => sum + (o.total || 0), 0);
+        this.processStatistics();
         checkDone();
       },
       error: () => { checkDone(); }
@@ -129,6 +128,83 @@ export class Dashboard implements OnInit {
       this.loadEmployees();
     }
   }
+
+  processStatistics(): void {
+    if (!this.orders || this.orders.length === 0) return;
+
+    // 1. Total Revenue (already handled by sumRevenue but let's be safe)
+    this.sumRevenue = this.orders
+      .filter(o => o.status !== 'cancelled')
+      .reduce((sum, o) => sum + (o.total || 0), 0);
+
+    // 2. Monthly Revenue
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyData = new Array(12).fill(0);
+    const currentYear = new Date().getFullYear();
+
+    this.orders
+      .filter(o => o.status !== 'cancelled' && new Date(o.createdAt).getFullYear() === currentYear)
+      .forEach(o => {
+        const month = new Date(o.createdAt).getMonth();
+        monthlyData[month] += (o.total || 0);
+      });
+
+    this.monthlyRevenue = monthNames.map((name, index) => ({
+      month: name,
+      revenue: monthlyData[index]
+    }));
+
+    // 3. Top Products
+    const productStats = new Map<string, { id: string, title: string, img: string, qty: number, revenue: number }>();
+
+    this.orders
+      .filter(o => o.status !== 'cancelled')
+      .forEach(o => {
+        if (o.items && Array.isArray(o.items)) {
+          o.items.forEach((item: any) => {
+            const title = item.title || 'Unknown Product';
+            // Nhóm theo Title để tuyệt đối tránh lặp lại cùng một tên sản phẩm và gộp được ảnh
+            const key = title;
+
+            // Tìm ảnh: ưu tiên trong item đơn hàng, sau đó tìm trong catalog theo ID hoặc Title
+            let img = item.img;
+            if (!img && this.products.length > 0) {
+              const p = this.products.find(p =>
+                (item.productId && String(p._id) === String(item.productId)) ||
+                (p.title === title)
+              );
+              if (p) img = p.img;
+            }
+
+            if (productStats.has(key)) {
+              const stat = productStats.get(key)!;
+              stat.qty += (item.qty || 0);
+              stat.revenue += (item.price || 0) * (item.qty || 0);
+              // Nếu mục hiện tại chưa có ảnh mà mục mới này lại có, hãy lấy ảnh
+              if (!stat.img && img) stat.img = img;
+            } else {
+              productStats.set(key, {
+                id: item.productId || item._id || 'unknown',
+                title: title,
+                img: img || '',
+                qty: item.qty || 0,
+                revenue: (item.price || 0) * (item.qty || 0)
+              });
+            }
+          });
+        }
+      });
+
+    this.topProducts = Array.from(productStats.values())
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 5);
+
+    this.maxRevenue = Math.max(...monthlyData, 1);
+  }
+
+  monthlyRevenue: { month: string, revenue: number }[] = [];
+  topProducts: any[] = [];
+  maxRevenue = 1;
 
   loadCategories(callback?: () => void): void {
     this.productService.getCategories().subscribe({
@@ -442,7 +518,21 @@ export class Dashboard implements OnInit {
 
   // --- Order Details ---
   viewOrderDetails(order: any): void {
-    this.selectedOrder = order;
+    this.selectedOrder = { ...order };
+
+    // Nâng cao dữ liệu: Tìm ảnh bị thiếu từ catalog sản phẩm
+    if (this.selectedOrder.items && Array.isArray(this.selectedOrder.items)) {
+      this.selectedOrder.items.forEach((item: any) => {
+        if (!item.img && this.products.length > 0) {
+          const prodId = item.productId || item._id;
+          const p = this.products.find(p =>
+            (prodId && String(p._id) === String(prodId)) ||
+            (p.title === item.title)
+          );
+          if (p) item.img = p.img;
+        }
+      });
+    }
     this.showOrderModal = true;
   }
 

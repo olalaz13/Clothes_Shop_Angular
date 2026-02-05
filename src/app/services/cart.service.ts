@@ -5,6 +5,7 @@ import { StorageService } from './storage.service';
 import { Product, CartItem } from '../models/product.model';
 import { BehaviorSubject } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,7 @@ export class CartService {
   private cartChanged = new BehaviorSubject<CartItem[]>([]); // BehaviorSubject để luôn có giá trị hiện tại
   cart$ = this.cartChanged.asObservable();
 
-  private wishlistUrl = 'http://localhost:5000/api/users/wishlist';
+  private wishlistUrl = `${environment.apiUrl}/users/wishlist`;
 
   constructor(
     private storageService: StorageService,

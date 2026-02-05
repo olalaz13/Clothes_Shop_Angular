@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { User } from '../models/user.model';
+import { environment } from '../../environments/environment';
 
 export interface AuthResponse extends User {
     token: string;
@@ -13,7 +14,7 @@ export interface AuthResponse extends User {
     providedIn: 'root'
 })
 export class AuthService {
-    private apiUrl = 'http://localhost:5000/api/auth';
+    private apiUrl = `${environment.apiUrl}/auth`;
     private currentUserSubject: BehaviorSubject<AuthResponse | null>;
     public currentUser: Observable<AuthResponse | null>;
     public isBrowser: boolean;

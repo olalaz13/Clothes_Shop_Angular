@@ -3,12 +3,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Order } from '../models/order.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class OrderService {
-    private apiUrl = 'http://localhost:5000/api/orders';
+    private apiUrl = `${environment.apiUrl}/orders`;
 
     constructor(private http: HttpClient, private authService: AuthService) { }
 
