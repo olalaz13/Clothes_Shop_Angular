@@ -27,6 +27,7 @@ exports.getProductById = asyncHandler(async (req, res, next) => {
 // @route   POST /api/products
 // @access  Private/Admin
 exports.createProduct = asyncHandler(async (req, res, next) => {
+    console.log('Create Product Body:', req.body);
     const product = await Product.create(req.body);
     res.status(201).json(product);
 });
@@ -35,6 +36,7 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 exports.updateProduct = asyncHandler(async (req, res, next) => {
+    console.log(`Update Product ${req.params.id} Body:`, req.body);
     let product = await Product.findById(req.params.id);
 
     if (!product) {

@@ -7,12 +7,12 @@ require('dotenv').config();
 
 const products = [
     // --- SHIRTS ---
-    { title: 'Linen Shirt', price: 49, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=1200', desc: 'Lightweight linen shirt — perfect for summer.' },
-    { title: 'Oxford Button-Down', price: 55, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?q=80&w=1200', desc: 'Classic oxford shirt for a smart look.' },
-    { title: 'Flannel Plaid Shirt', price: 45, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1589310243389-96a5483213a8?q=80&w=1200', desc: 'Warm and cozy flannel for cooler days.' },
-    { title: 'Denim Shirt', price: 59, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1583912267550-d44d4a3c5a71?q=80&w=1200', desc: 'Rugged denim shirt with a vintage wash.' },
-    { title: 'Striped Business Shirt', price: 65, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1604644401890-0bd678c83788?q=80&w=1200', desc: 'Professional striped shirt for office wear.' },
-    { title: 'Hawaiian Party Shirt', price: 39, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1598911510795-7e720ff392a9?q=80&w=1200', desc: 'Vibrant hawaiian shirt for vacation vibes.' },
+    { title: 'Linen Shirt', price: 49, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=1200', desc: 'Lightweight linen shirt — perfect for summer.', madeIn: 'Vietnam' },
+    { title: 'Oxford Button-Down', price: 55, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?q=80&w=1200', desc: 'Classic oxford shirt for a smart look.', madeIn: 'USA' },
+    { title: 'Flannel Plaid Shirt', price: 45, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1589310243389-96a5483213a8?q=80&w=1200', desc: 'Warm and cozy flannel for cooler days.', madeIn: 'China' },
+    { title: 'Denim Shirt', price: 59, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1583912267550-d44d4a3c5a71?q=80&w=1200', desc: 'Rugged denim shirt with a vintage wash.', madeIn: 'Turkey' },
+    { title: 'Striped Business Shirt', price: 65, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1604644401890-0bd678c83788?q=80&w=1200', desc: 'Professional striped shirt for office wear.', madeIn: 'Vietnam' },
+    { title: 'Hawaiian Party Shirt', price: 39, cat: 'Shirts', img: 'https://images.unsplash.com/photo-1598911510795-7e720ff392a9?q=80&w=1200', desc: 'Vibrant hawaiian shirt for vacation vibes.', madeIn: 'Hawaii' },
 
     // --- T-SHIRTS ---
     { title: 'Classic Tee', price: 19, cat: 'T-Shirts', img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1200', desc: 'Soft cotton t-shirt with a relaxed fit.' },

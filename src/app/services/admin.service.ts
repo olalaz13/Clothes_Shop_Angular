@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
-import { environment } from '../../environments/environment';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AdminService {
-    private apiUrl = environment.apiUrl;
+    private apiUrl = API_CONFIG.baseUrl;
 
     constructor(private http: HttpClient, private authService: AuthService) { }
 

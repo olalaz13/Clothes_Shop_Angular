@@ -232,7 +232,8 @@ export class Dashboard implements OnInit {
     return this.products.filter(p =>
       !term ||
       p.title.toLowerCase().includes(term) ||
-      p.cat?.toLowerCase().includes(term)
+      p.cat?.toLowerCase().includes(term) ||
+      p.madeIn?.toLowerCase().includes(term)
     );
   }
 
@@ -308,7 +309,8 @@ export class Dashboard implements OnInit {
         { name: 'Black', hex: '#1e293b' },
         { name: 'Indigo', hex: '#6366f1' },
         { name: 'Red', hex: '#ef4444' }
-      ]
+      ],
+      madeIn: ''
     };
     this.isEditing = false;
     this.showModal = true;
@@ -317,6 +319,7 @@ export class Dashboard implements OnInit {
   openEditModal(product: Product): void {
     this.currentProduct = { ...product };
     if (!this.currentProduct.sizes) this.currentProduct.sizes = ['S', 'M', 'L', 'XL'];
+    if (!this.currentProduct.madeIn) this.currentProduct.madeIn = '';
     if (!this.currentProduct.colors) {
       this.currentProduct.colors = [
         { name: 'Black', hex: '#1e293b' },

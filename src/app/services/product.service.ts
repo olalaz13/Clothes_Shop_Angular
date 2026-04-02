@@ -3,15 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product } from '../models/product.model';
 import { Category } from '../models/category.model';
-import { environment } from '../../environments/environment';
+
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = `${environment.apiUrl}/products`;
-  private uploadUrl = `${environment.apiUrl}/upload`;
-  private categoryUrl = `${environment.apiUrl}/categories`;
+  private apiUrl = `${API_CONFIG.baseUrl}/products`;
+  private uploadUrl = `${API_CONFIG.baseUrl}/upload`;
+  private categoryUrl = `${API_CONFIG.baseUrl}/categories`;
 
   constructor(private http: HttpClient) { }
 
@@ -87,7 +88,7 @@ export class ProductService {
   getImgUrl(url: string | undefined): string {
     if (!url) return 'https://placehold.co/600x400?text=No+Image';
     if (url.startsWith('http')) return url;
-    if (url.startsWith('/uploads')) return `${environment.apiUrl.replace('/api', '')}${url}`;
+    if (url.startsWith('/uploads')) return `${API_CONFIG.imgUrl}${url}`;
     if (url.startsWith('img/')) return `/${url}`;
     return url;
   }

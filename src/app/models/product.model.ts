@@ -6,6 +6,7 @@ export interface Product {
   cat: string;
   img: string;
   desc: string;
+  madeIn?: string;
   sizes?: string[];
   colors?: { name: string; hex: string }[];
   createdAt?: Date;

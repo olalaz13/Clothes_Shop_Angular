@@ -5,8 +5,7 @@ const connectDB = async () => {
         const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/clothes-shop');
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (err) {
-        console.error(`Error: ${err.message}`);
-        process.exit(1);
+        console.error(`MongoDB connection error: ${err.message}`);
     }
 };
 

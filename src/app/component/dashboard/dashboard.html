@@ -182,6 +182,7 @@
                   <th>Image</th>
                   <th>Title</th>
                   <th>Category</th>
+                  <th>Origin</th>
                   <th>Price</th>
                   <th>Actions</th>
                 </tr>
@@ -192,6 +193,7 @@
                       onerror="this.src='https://placehold.co/100x100?text=Product'"></td>
                   <td><strong>{{ product.title }}</strong></td>
                   <td><span class="badge secondary">{{ product.cat || 'No Cat' }}</span></td>
+                  <td>{{ product.madeIn || 'N/A' }}</td>
                   <td>{{ product.price | currency }}</td>
                   <td>
                     <div class="table-actions">
@@ -476,6 +478,11 @@
             </div>
 
             <div class="input-group mb-3">
+              <label><i class="bi bi-globe-americas me-1"></i> Origin (Made In)</label>
+              <input type="text" [(ngModel)]="currentProduct.madeIn" name="madeIn" placeholder="e.g. Vietnam, USA">
+            </div>
+
+            <div class="input-group mb-3">
               <label><i class="bi bi-card-text me-1"></i> Description</label>
               <textarea [(ngModel)]="currentProduct.desc" name="desc" rows="5"
                 placeholder="Write a compelling description..."
@@ -697,8 +704,12 @@
         </div>
 
         <div class="product-info">
-          <span class="badge"
-            style="background: #e0e7ff; color: #6366f1; margin-bottom: 10px; padding: 6px 14px;">{{selectedProduct.cat}}</span>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <span class="badge"
+              style="background: #e0e7ff; color: #6366f1; padding: 6px 14px;">{{selectedProduct.cat}}</span>
+            <span *ngIf="selectedProduct.madeIn" class="badge"
+              style="background: #ecfdf5; color: #10b981; padding: 6px 14px;">Made in {{selectedProduct.madeIn}}</span>
+          </div>
           <h2 style="margin: 0 0 15px 0; font-size: 1.75rem; font-weight: 800; color: #0f172a;">{{ selectedProduct.title
             }}</h2>
           <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 20px;">
